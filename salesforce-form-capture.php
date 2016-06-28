@@ -14,4 +14,9 @@ require_once( CHIEF_SFC_PATH . '/admin/controller.php' );
 require_once( CHIEF_SFC_PATH . '/includes/controller.php' );
 
 CHIEF_SFC_Admin::init();
+
+$settings = new CHIEF_SFC_Settings();
+$settings->add_actions();
+
+
 // CHIEF_SFC_Logic::init();
