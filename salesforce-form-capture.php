@@ -10,13 +10,23 @@ Author URI:  http://www.agencychief.com
 define( 'CHIEF_SFC_PATH', plugin_dir_path( __FILE__ ) );
 define( 'CHIEF_SFC_URL', plugin_dir_url( __FILE__ ) );
 
-require_once( CHIEF_SFC_PATH . '/admin/controller.php' );
-require_once( CHIEF_SFC_PATH . '/includes/controller.php' );
+require_once( CHIEF_SFC_PATH . '/admin/class-settings-abstract.php' );
+require_once( CHIEF_SFC_PATH . '/admin/class-admin.php' );
+require_once( CHIEF_SFC_PATH . '/admin/class-settings.php' );
 
-CHIEF_SFC_Admin::init();
+// require_once( CHIEF_SFC_PATH . '/includes/controller.php' );
 
-$settings = new CHIEF_SFC_Settings();
-$settings->add_actions();
+function chief_salesforce_form_capture() {
 
+	// add admin container
+	$admin = new CHIEF_SFC_Admin();
+	$admin->add_actions();
 
-// CHIEF_SFC_Logic::init();
+	// add integrations ui
+
+	// add settings
+	$settings = new CHIEF_SFC_Settings();
+	$settings->add_actions();
+
+}
+add_action( 'plugins_loaded', 'chief_salesforce_form_capture' );
