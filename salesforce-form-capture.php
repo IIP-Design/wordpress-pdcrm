@@ -12,6 +12,7 @@ define( 'CHIEF_SFC_URL', plugin_dir_url( __FILE__ ) );
 
 require_once( CHIEF_SFC_PATH . '/admin/class-settings-abstract.php' );
 require_once( CHIEF_SFC_PATH . '/admin/class-admin.php' );
+require_once( CHIEF_SFC_PATH . '/admin/class-integrations.php' );
 require_once( CHIEF_SFC_PATH . '/admin/class-settings.php' );
 
 // require_once( CHIEF_SFC_PATH . '/includes/controller.php' );
@@ -23,6 +24,8 @@ function chief_salesforce_form_capture() {
 	$admin->add_actions();
 
 	// add integrations ui
+	$integrations = new CHIEF_SFC_Integrations();
+	$integrations->add_actions();
 
 	// add settings
 	$settings = new CHIEF_SFC_Settings();

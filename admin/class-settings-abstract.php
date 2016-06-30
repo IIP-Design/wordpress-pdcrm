@@ -14,6 +14,7 @@ abstract class CHIEF_SFC_Settings_Abstract {
 	public $sections;
 	public $fields;
 	public $values;
+	public $submit_value;
 
 	/**
 	 * Hook in our methods to the WordPress to make everything work.
@@ -101,7 +102,7 @@ abstract class CHIEF_SFC_Settings_Abstract {
 				<?php
 					settings_fields( $this->slug );
 					do_settings_sections( $this->slug );
-					submit_button( 'Save Settings' );
+					submit_button( esc_attr( $this->submit_value ) );
 				?>
 			</form>
 		</div>
