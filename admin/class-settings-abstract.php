@@ -10,11 +10,12 @@ abstract class CHIEF_SFC_Settings_Abstract {
 	public $page_title;
 	public $menu_title;
 	public $intro;
-	public $setting;
 	public $sections;
 	public $fields;
 	public $values;
 	public $submit_value;
+
+	static public $setting;
 
 	/**
 	 * Hook in our methods to the WordPress to make everything work.
@@ -41,7 +42,7 @@ abstract class CHIEF_SFC_Settings_Abstract {
 	 * It also allows us to better automate sanitization.
 	 */
 	public function register_settings() {
-		register_setting( $this->slug, $this->setting, array( $this, 'sanitize_settings' ) );
+		register_setting( $this->slug, self::$setting, array( $this, 'sanitize_settings' ) );
 	}
 
 	/**
@@ -89,7 +90,7 @@ abstract class CHIEF_SFC_Settings_Abstract {
 	 */
 	public function view_page() {
 		// get values to have them handy for field callbacks
-		$this->values = get_option( $this->setting, array() );
+		$this->values = get_option( self::$setting, array() );
 
 		?>
 		<div class="wrap">

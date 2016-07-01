@@ -11,6 +11,7 @@ define( 'CHIEF_SFC_PATH', plugin_dir_path( __FILE__ ) );
 define( 'CHIEF_SFC_URL', plugin_dir_url( __FILE__ ) );
 
 require_once( CHIEF_SFC_PATH . '/admin/class-settings-abstract.php' );
+require_once( CHIEF_SFC_PATH . '/admin/class-authorization.php' );
 require_once( CHIEF_SFC_PATH . '/admin/class-admin.php' );
 require_once( CHIEF_SFC_PATH . '/admin/class-integrations.php' );
 require_once( CHIEF_SFC_PATH . '/admin/class-settings.php' );
@@ -18,6 +19,8 @@ require_once( CHIEF_SFC_PATH . '/admin/class-settings.php' );
 // require_once( CHIEF_SFC_PATH . '/includes/controller.php' );
 
 function chief_salesforce_form_capture() {
+
+	CHIEF_SFC_Authorization::add_actions();
 
 	// add admin container
 	$admin = new CHIEF_SFC_Admin();
