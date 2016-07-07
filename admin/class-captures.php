@@ -1,8 +1,8 @@
 <?php
 /**
- * The Salesforce > Integrations page.
+ * The Salesforce > Form Captures page.
  */
-class CHIEF_SFC_Integrations {
+class CHIEF_SFC_Captures {
 
 	/**
 	 * Register events to create admin pages.
@@ -33,7 +33,7 @@ class CHIEF_SFC_Integrations {
 		<div class="wrap">
 			<h2>Salesforce Form Captures</h2>
 			<?php
-				$table = new CHIEF_SFC_Integrations_List_Table();
+				$table = new CHIEF_SFC_Captures_List_Table();
 				$table->prepare_items();
 				$table->display();
 			?>
@@ -48,13 +48,13 @@ class CHIEF_SFC_Integrations {
 if( !class_exists( 'WP_List_Table' ) )
 	require_once( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
 
-class CHIEF_SFC_Integrations_List_Table extends WP_List_Table {
+class CHIEF_SFC_Captures_List_Table extends WP_List_Table {
 
 	public function get_columns() {
 		$columns = array(
 			'form'   => 'Form',
 			'source' => 'Source',
-			'active' => 'Connected'
+			'status' => 'Status'
 		);
 		return $columns;
 	}
@@ -71,6 +71,10 @@ class CHIEF_SFC_Integrations_List_Table extends WP_List_Table {
 		</strong>
 		<?php
 		return ob_get_clean();
+	}
+
+	public function column_status( $item ) {
+		return $item['status'] ? 'Active' : 'Inactive';
 	}
 
 	public function prepare_items() {
@@ -91,7 +95,7 @@ class CHIEF_SFC_Integrations_List_Table extends WP_List_Table {
 				$forms[] = array(
 					'form'   => $form->name,
 					'source' => 'Formidable',
-					'active' => ''
+					'status' => true
 				);
 			}
 
@@ -102,7 +106,7 @@ class CHIEF_SFC_Integrations_List_Table extends WP_List_Table {
 				$forms[] = array(
 					'form'   => $form->title(),
 					'source' => 'Contact Form 7',
-					'active' => ''
+					'status' => false
 				);
 			}
 		}

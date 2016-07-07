@@ -13,7 +13,6 @@ abstract class CHIEF_SFC_Settings_Abstract {
 	public $sections;
 	public $fields;
 	public $values;
-	public $submit_value;
 
 	static public $setting;
 
@@ -86,29 +85,9 @@ abstract class CHIEF_SFC_Settings_Abstract {
 	}
 
 	/**
-	 * Add wrapping HTML for the settings page.
+	 * Ensure the child class includes page HTML.
 	 */
-	public function view_page() {
-		// get values to have them handy for field callbacks
-		$this->values = get_option( self::$setting, array() );
-
-		?>
-		<div class="wrap">
-			<h1><?php echo esc_html( $this->page_title ); ?></h1>
-			<?php if ( isset( $_GET['settings-updated'] ) ) { ?>
-			    <div class="updated notice is-dismissible"><p>Settings updated.</p></div>
-			<?php } ?>
-			<?php echo $this->intro; ?>
-			<form action="options.php" method="post">
-				<?php
-					settings_fields( $this->slug );
-					do_settings_sections( $this->slug );
-					submit_button( esc_attr( $this->submit_value ) );
-				?>
-			</form>
-		</div>
-		<?php
-	}
+	abstract function view_page();
 
 	/**
 	 * Ensure the child class includes sanitization for its fields.
