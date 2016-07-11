@@ -40,36 +40,51 @@ class CHIEF_SFC_Authorization {
 		if ( !isset( $_GET['settings-updated'] ) )
 			return;
 
+		// just finished authorizing. no need to continue
+		if ( isset( $_GET['authorized'] ) )
+			return;
+
+		// get form settings
+		$values = get_option( CHIEF_SFC_Settings::$setting, array() );
+
+		// if empty form, continue on as normal
+		if ( !array_filter( $values ) ) {
+			// delete_option( self::$setting );
+			return;
+		}
+
 		// check if we're already authorized
-		$response = self::check_authorization();
-		if ( !is_wp_error( $response ) ) {
+		$response = self::check_authorization( $attempt_refresh = false );
+
+		// not authorized
+		if ( is_wp_error( $response ) ) {
+
+			// is either field empty? if so, get out early
+			if ( $response->get_error_code() === 'missing_client_keys' ) {
+				$url = 'admin.php?page=chief-sfc-settings';
+				$url = esc_url_raw( add_query_arg( 'missing-required', 'true', $url ) );
+				wp_redirect( $url );
+				exit;
+			}
+
+			// attempt authorization
+			$url = 'https://login.salesforce.com/services/oauth2/authorize';
+			$url = esc_url_raw( add_query_arg( array(
+				'response_type' => 'code',
+				'client_id'     => $values['client_id'],
+				'redirect_uri'  => site_url(),
+				'state'         => wp_create_nonce( 'chief-sfc-authorize' )
+			), $url ) );
+			wp_redirect( $url );
+			exit;
+
+		// already authorized
+		} else {
 			$url = 'admin.php?page=chief-sfc-settings';
 			$url = esc_url_raw( add_query_arg( 'already-authorized', 'true', $url ) );
 			wp_redirect( $url );
 			exit;
 		}
-
-		// get form settings
-		$values = get_option( CHIEF_SFC_Settings::$setting, array() );
-
-		// if empty form, don't bother going further
-		if ( !array_filter( $values ) ) {
-			$url = 'admin.php?page=chief-sfc-settings';
-			$url = esc_url_raw( add_query_arg( 'empty-form', 'true', $url ) );
-			wp_redirect( $url );
-			exit;
-		}
-
-		// attempt authorization
-		$url = 'https://login.salesforce.com/services/oauth2/authorize';
-		$url = esc_url_raw( add_query_arg( array(
-			'response_type' => 'code',
-			'client_id'     => $values['client_id'],
-			'redirect_uri'  => site_url(),
-			'state'         => wp_create_nonce( 'chief-sfc-authorize' )
-		), $url ) );
-		wp_redirect( $url );
-		exit;
 
 	}
 
@@ -87,6 +102,10 @@ class CHIEF_SFC_Authorization {
 
 		$code = sanitize_text_field( $_GET['code'] );
 		$values = get_option( CHIEF_SFC_Settings::$setting, array() );
+		$values = wp_parse_args( $values, array(
+			'client_id'     => '',
+			'client_secret' => ''
+		) );
 
 		$url = 'https://login.salesforce.com/services/oauth2/token';
 		$post = array(
@@ -125,7 +144,7 @@ class CHIEF_SFC_Authorization {
 		update_option( self::$setting, $body, $autoload = false );
 
 		// redirect to success
-		$settings_url = admin_url( 'admin.php?page=chief-sfc-settings&settings-updated=true' );
+		$settings_url = admin_url( 'admin.php?page=chief-sfc-settings&settings-updated=true&authorized=true' );
 		wp_redirect( $settings_url );
 		exit;
 
@@ -200,7 +219,7 @@ class CHIEF_SFC_Authorization {
 			if ( $response->get_error_code() === 'INVALID_SESSION_ID' ) {
 				CHIEF_SFC_Authorization::refresh_token();
 				// now try again (but don't keep trying)
-				$response = chief_sfc_request( $uri, $params, $method, false );
+				$response = self::request( $uri, $params, $method, false );
 			}
 		}
 
@@ -251,13 +270,17 @@ class CHIEF_SFC_Authorization {
 	/**
 	 * Check to see if we're currently communicating with Salesforce by sending a bare-bones request.
 	 */
-	static public function check_authorization() {
+	static public function check_authorization( $attempt_refresh = true ) {
+
+		// fail early if no client keys exist
 		$client_keys = get_option( CHIEF_SFC_Settings::$setting, array() );
 		$client_keys = array_filter( $client_keys );
 		if ( count( $client_keys ) < 2 )
-			return new WP_Error( 'no_client_keys', 'The Consumer Key and Consumer Secret are required.' );
+			return new WP_Error( 'missing_client_keys', 'The Consumer Key and Consumer Secret are required.' );
 
-		return self::request( '', array(), 'GET' );
+		// send a basic request
+		return self::request( '', array(), 'GET', $attempt_refresh );
+
 	}
 
 }

@@ -8,8 +8,8 @@ class CHIEF_SFC_Settings extends CHIEF_SFC_Settings_Abstract {
 		self::$setting    = 'chief_sfc_settings';
 		$this->parent     = 'chief-sfc-captures';
 		$this->slug       = 'chief-sfc-settings';
-		$this->page_title = 'Salesforce Form Capture Settings';
-		$this->menu_title = 'Settings';
+		$this->page_title = 'Salesforce Authorization';
+		$this->menu_title = 'Authorization';
 		$this->intro      = $this->get_intro();
 		$this->fields = array(
 			'chief-sfc-client-id-field' => array(
@@ -38,28 +38,36 @@ class CHIEF_SFC_Settings extends CHIEF_SFC_Settings_Abstract {
 		// get values to have them handy for field callbacks
 		$this->values = get_option( self::$setting, array() );
 
+		// debugging
+		/* $auth = get_option( CHIEF_SFC_Authorization::$setting, array() );
+		echo '<pre>';
+		print_r( $this->values );
+		print_r( $auth );
+		echo '</pre>'; */
+
 		?>
 		<div class="wrap">
 			<h1><?php echo esc_html( $this->page_title ); ?></h1>
 
-			<?php // successfully authorized
-			if ( !empty( $_GET['settings-updated'] ) && $_GET['settings-updated'] === 'true' ) { ?>
-			    <div class="updated notice is-dismissible"><p>Settings updated.</p></div>
+			<?php if ( !empty( $_GET['authorized'] ) && $_GET['authorized'] === 'true' ) { ?>
+			    <div class="updated notice is-dismissible"><p>Authorization successful.</p></div>
 			<?php } ?>
 
 			<?php // successfully revoked authorization
 			if ( !empty( $_GET['revoked'] ) && $_GET['revoked'] === 'true' ) { ?>
-				<div class="notice notice-info is-dismissible"><p>Authorization revoked and Consumer Secret reset.</p></div>
+				<div class="notice notice-info is-dismissible"><p>Authorization revoked.</p></div>
 			<?php } ?>
 
 			<?php // tried submitting an empty form
-			if ( !empty( $_GET['empty-form'] ) && $_GET['empty-form'] === 'true' ) { ?>
-			    <div class="notice notice-error is-dismissible"><p>The form is empty.</p></div>
+			if ( !empty( $_GET['missing-required'] ) && $_GET['missing-required'] === 'true' ) { ?>
+			    <div class="notice notice-error is-dismissible"><p>The Consumer Key and Consumer Secret are both required for authorization.</p></div>
 			<?php } ?>
 
 			<?php // tried authenticating but got an error
 			if ( !empty( $_GET['auth-error'] ) && $_GET['auth-error'] === 'true' ) {
 				$error = get_transient( 'chief_sfc_error' );
+				if ( $error === 'invalid client credentials' )
+					$error = 'Salesforce did not accept the Consumer Key or Consumer Secret.';
 				if ( !$error ) $error = 'unknown error.'; ?>
 			    <div class="notice notice-error is-dismissible"><p>Error during authorization: <?php echo esc_html( $error ); ?></p></div>
 			<?php } ?>
@@ -69,8 +77,6 @@ class CHIEF_SFC_Settings extends CHIEF_SFC_Settings_Abstract {
 			    <div class="notice notice-info is-dismissible"><p>You're already authorized.</p></div>
 			<?php } ?>
 
-
-
 			<?php echo $this->intro; ?>
 
 			<form action="options.php" method="post">
@@ -79,7 +85,7 @@ class CHIEF_SFC_Settings extends CHIEF_SFC_Settings_Abstract {
 					do_settings_sections( $this->slug );
 
 					$response = CHIEF_SFC_Authorization::check_authorization();
-					$submit_value = is_wp_error( $response ) ? 'Save Settings &amp; Authorize' : 'Save Settings';
+					$submit_value = 'Authorize with Salesforce';
 					submit_button( esc_attr( $submit_value ) );
 				?>
 			</form>
@@ -91,7 +97,11 @@ class CHIEF_SFC_Settings extends CHIEF_SFC_Settings_Abstract {
 	 * Intro HTML.
 	 */
 	public function get_intro() {
-		return '';
+		ob_start();
+		?>
+		<p>Before using this plugin, you must log into Salesforce and create a Connected App. The app will be assigned a Consumer Key and Consumer Secret, which should then be added here.</p>
+		<?php
+		return ob_get_clean();
 	}
 
 	/**
@@ -128,9 +138,10 @@ class CHIEF_SFC_Settings extends CHIEF_SFC_Settings_Abstract {
 			$auth = wp_parse_args( $auth, array(
 				'issued_at' => 0
 			) );
-			$date = get_option( 'date_format', 'F j, Y' );
-			$time = get_option( 'time_format', 'g:i a' );
-			$issued_at = date( $date . ' \a\t ' . $time, $auth['issued_at'] / 1000 ) . ' UTC';
+			$date_format = get_option( 'date_format', 'F j, Y' );
+			$time_format = get_option( 'time_format', 'g:i a' );
+			$local_time = ( $auth['issued_at'] / 1000 ) + ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS );
+			$issued_at = date( $date_format . ' \a\t ' . $time_format, $local_time );
 			?>
 			<span style="color:green;">Connected</span>
 			(since <?php echo $issued_at; ?>)
@@ -157,27 +168,25 @@ class CHIEF_SFC_Settings extends CHIEF_SFC_Settings_Abstract {
 			exit;
 		}
 
-		$sanitized = array();
-		foreach( $this->fields as $field ) {
-			$field = wp_parse_args( $field, array(
-				'type' => '',
-				'args' => ''
-			) );
-			$name = isset( $field['args']['name'] ) ? $field['args']['name'] : '';
-			if ( !$name )
-				continue;
+		// sanitize
+		$client_id = isset( $values['client_id'] ) ? sanitize_text_field( $values['client_id'] ) : '';
+		$client_secret = isset( $values['client_secret'] ) ? sanitize_text_field( $values['client_secret'] ) : '';
 
-			// if a value isn't passed which matches this field
-			if ( !isset( $values[$name] ) )
-				continue;
-
-			switch( $field['type'] ) {
-				case 'text' :
-					$sanitized[$name] = sanitize_text_field( $values[$name] );
-					break;
-			}
+		// if either field is empty, hijack the process
+		if ( !$client_id || !$client_secret ) {
+			$url = 'admin.php?page=chief-sfc-settings';
+			$url = esc_url_raw( add_query_arg( 'missing-required', 'true', $url ) );
+			wp_redirect( $url );
+			exit;
 		}
+
+		// send along
+		$sanitized = array(
+			'client_id'     => $client_id,
+			'client_secret' => $client_secret
+		);
 		return $sanitized;
+
 	}
 
 }
