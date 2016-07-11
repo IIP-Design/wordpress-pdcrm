@@ -25,6 +25,7 @@ class CHIEF_SFC_Remote {
 		if ( $uri )
 			$url .= $uri;
 
+		// if get, put params into the url and discard the array
 		if ( ( $method === 'GET' ) && $params ) {
 			$url .= urldecode( http_build_query( $params ) );
 			$params = false;
@@ -32,23 +33,34 @@ class CHIEF_SFC_Remote {
 
 		$request = array(
 			'method'    => $method,
-			'body'      => 'sample body',
+			'body'      => '',
 			'headers'   => $headers,
 			'sslverify' => true
 		);
 
 		$response = wp_remote_request( $url, $request );
+		$body = json_decode( wp_remote_retrieve_body( $response ) );
 
-		// if error, try refreshing the token
-		if ( is_wp_error( $response ) && $attempt_refresh ) {
-			if ( $response->get_error_code() === 'INVALID_SESSION_ID' ) {
+		$code = isset( $response['response']['code'] ) ? (int) $response['response']['code'] : 400;
+		if ( $code !== 200 && $attempt_refresh ) {
+			$error = isset( $body[0]['errorCode'] ) ? sanitize_text_field( $body[0]['errorCode'] ) : '';
+			if ( $error === 'INVALID_SESSION_ID' ) {
 				self::refresh_token();
 				// now try again (but don't keep trying)
 				$response = self::request( $uri, $params, $method, false );
 			}
 		}
 
-		return $response;
+		// if error, try refreshing the token
+		/* if ( is_wp_error( $response ) && $attempt_refresh ) {
+			if ( $response->get_error_code() === 'INVALID_SESSION_ID' ) {
+				self::refresh_token();
+				// now try again (but don't keep trying)
+				$response = self::request( $uri, $params, $method, false );
+			}
+		} */
+
+		return $body;
 
 	}
 
@@ -56,14 +68,14 @@ class CHIEF_SFC_Remote {
 	 * Make a basic GET request.
 	 */
 	static public function get( $uri = '', $params = array() ) {
-		self::request( $uri, $params, 'GET', true );
+		return self::request( $uri, $params, 'GET', true );
 	}
 
 	/**
 	 * Make a basic POST request.
 	 */
 	static public function post( $uri = '', $params = array() ) {
-		self::request( $uri, $params, 'POST', true );
+		return self::request( $uri, $params, 'POST', true );
 	}
 
 	/**

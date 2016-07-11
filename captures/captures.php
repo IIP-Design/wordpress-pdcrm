@@ -31,11 +31,28 @@ class CHIEF_SFC_Captures {
 	public function view_page() {
 		?>
 		<div class="wrap">
-			<h2>Salesforce Form Captures</h2>
 			<?php
-				$table = new CHIEF_SFC_Captures_List_Table();
-				$table->prepare_items();
-				$table->display();
+				// send to the list page or the individual form screen
+				$form   = isset( $_GET['form'] ) ? (int) $_GET['form'] : false;
+				$source = isset( $_GET['source'] ) ? sanitize_key( $_GET['source'] ) : false;
+				if ( $form && $source ) {
+					?>
+					<h2>
+						Salesforce Form Captures
+						<a class="page-title-action" href="<?php echo admin_url( 'admin.php?page=chief-sfc-captures' ); ?>">View All</a>
+					</h2>
+					<?php
+					$form_screen = new CHIEF_SFC_Form_Screen( $form, $source );
+					$form_screen->display();
+				} else {
+					?>
+					<h2>Salesforce Form Captures</h2>
+					<?php
+					$table = new CHIEF_SFC_List_Table();
+					$table->prepare_items();
+					$table->views();
+					$table->display();
+				}
 			?>
 		</div>
 		<?php
@@ -45,73 +62,3 @@ class CHIEF_SFC_Captures {
 
 }
 
-if( !class_exists( 'WP_List_Table' ) )
-	require_once( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
-
-class CHIEF_SFC_Captures_List_Table extends WP_List_Table {
-
-	public function get_columns() {
-		$columns = array(
-			'form'   => 'Form',
-			'source' => 'Source',
-			'status' => 'Status'
-		);
-		return $columns;
-	}
-
-	public function column_default( $item, $column_name ) {
-		return isset( $item[$column_name] ) ? $item[$column_name] : print_r( $item, true );
-	}
-
-	public function column_form( $item ) {
-		ob_start();
-		?>
-		<strong>
-			<a class="row-title" href="#"><?php echo $item['form']; ?></a>
-		</strong>
-		<?php
-		return ob_get_clean();
-	}
-
-	public function column_status( $item ) {
-		return $item['status'] ? 'Active' : 'Inactive';
-	}
-
-	public function prepare_items() {
-		$columns  = $this->get_columns();
-		$hidden   = array();
-		$sortable = array();
-		$this->_column_headers = array( $columns, $hidden, $sortable );
-		$this->items = $this->get_items();
-	}
-
-	public function get_items() {
-		$forms = array();
-
-		// check for compatible plugins
-		if ( is_callable( array( 'FrmForm', 'getAll' ) ) ) {
-			$formidable_forms = FrmForm::getAll();
-			foreach( $formidable_forms as $form ) {
-				$forms[] = array(
-					'form'   => $form->name,
-					'source' => 'Formidable',
-					'status' => true
-				);
-			}
-
-		}
-		if ( is_callable( array( 'WPCF7_ContactForm', 'find' ) ) ) {
-			$contact_form_7s = WPCF7_ContactForm::find();
-			foreach( $contact_form_7s as $form ) {
-				$forms[] = array(
-					'form'   => $form->title(),
-					'source' => 'Contact Form 7',
-					'status' => false
-				);
-			}
-		}
-
-		return $forms;
-	}
-
-}

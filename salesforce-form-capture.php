@@ -19,6 +19,8 @@ require_once( CHIEF_SFC_PATH . 'authorization/settings.php' );
 require_once( CHIEF_SFC_PATH . 'authorization/authorization.php' );
 
 // form captures - main ui
+require_once( CHIEF_SFC_PATH . 'captures/list-table.php' );
+require_once( CHIEF_SFC_PATH . 'captures/form-screen.php' );
 require_once( CHIEF_SFC_PATH . 'captures/captures.php' );
 
 function chief_sfc_boot() {
