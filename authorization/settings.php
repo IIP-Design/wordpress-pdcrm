@@ -38,13 +38,6 @@ class CHIEF_SFC_Settings extends CHIEF_SFC_Settings_Abstract {
 		// get values to have them handy for field callbacks
 		$this->values = get_option( self::$setting, array() );
 
-		// debugging
-		/* $auth = get_option( CHIEF_SFC_Authorization::$setting, array() );
-		echo '<pre>';
-		print_r( $this->values );
-		print_r( $auth );
-		echo '</pre>'; */
-
 		?>
 		<div class="wrap">
 			<h1><?php echo esc_html( $this->page_title ); ?></h1>
@@ -84,7 +77,7 @@ class CHIEF_SFC_Settings extends CHIEF_SFC_Settings_Abstract {
 					settings_fields( $this->slug );
 					do_settings_sections( $this->slug );
 
-					$response = CHIEF_SFC_Authorization::check_authorization();
+					$response = CHIEF_SFC_Remote::test();
 					$submit_value = 'Authorize with Salesforce';
 					submit_button( esc_attr( $submit_value ) );
 				?>
@@ -99,7 +92,7 @@ class CHIEF_SFC_Settings extends CHIEF_SFC_Settings_Abstract {
 	public function get_intro() {
 		ob_start();
 		?>
-		<p>Before using this plugin, you must log into Salesforce and create a Connected App. The app will be assigned a Consumer Key and Consumer Secret, which should then be added here.</p>
+		<p>Before using this plugin, you must log into Salesforce and create a Connected App. The app will be assigned a Consumer Key and Consumer Secret, which should then be added here. <strong>An https connection is required.</strong></p>
 		<?php
 		return ob_get_clean();
 	}
@@ -129,7 +122,7 @@ class CHIEF_SFC_Settings extends CHIEF_SFC_Settings_Abstract {
 	 */
 	public function view_field_status() {
 
-		$response = CHIEF_SFC_Authorization::check_authorization();
+		$response = CHIEF_SFC_Remote::test();
 
 		if ( is_wp_error( $response ) ) {
 			?><span>Not connected.</span><?php
@@ -161,7 +154,7 @@ class CHIEF_SFC_Settings extends CHIEF_SFC_Settings_Abstract {
 		// if we're trying to revoke, hijack the process
 		$revoke = isset( $_POST['revoke'] ) ? (bool) $_POST['revoke'] : false;
 		if ( $revoke ) {
-			$response = CHIEF_SFC_Authorization::revoke();
+			$response = CHIEF_SFC_Remote::revoke();
 			$url = 'admin.php?page=chief-sfc-settings';
 			$url = esc_url_raw( add_query_arg( 'revoked', 'true', $url ) );
 			wp_redirect( $url );
