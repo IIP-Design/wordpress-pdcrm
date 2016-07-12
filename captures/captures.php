@@ -42,7 +42,7 @@ class CHIEF_SFC_Captures {
 						<a class="page-title-action" href="<?php echo admin_url( 'admin.php?page=chief-sfc-captures' ); ?>">View All</a>
 					</h2>
 					<?php
-					$form_screen = new CHIEF_SFC_Form_Screen( $form, $source );
+					$form_screen = new CHIEF_SFC_Form( $form, $source );
 					$form_screen->display();
 				} else {
 					?>
