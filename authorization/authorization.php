@@ -126,8 +126,6 @@ class CHIEF_SFC_Authorization {
 		$body = wp_parse_args( $body, array(
 			'access_token'  => '',
 			'refresh_token' => '',
-			// 'signature'     => '',
-			// 'id'            => '',
 			'issued_at'     => '',
 			'instance_url'  => ''
 		) );

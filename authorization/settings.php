@@ -137,7 +137,7 @@ class CHIEF_SFC_Settings extends CHIEF_SFC_Settings_Abstract {
 			$issued_at = date( $date_format . ' \a\t ' . $time_format, $local_time );
 			?>
 			<span style="color:green;">Connected</span>
-			(since <?php echo $issued_at; ?>)
+			(last refreshed <?php echo $issued_at; ?>)
 			<span style="display:inline-block;vertical-align:middle;">
 				<?php submit_button( esc_attr( 'Revoke Authorization' ), 'secondary', 'revoke', false ); ?>
 			</span>

@@ -1,14 +1,45 @@
 <?php
 /**
- * The Salesforce > Form Captures page.
+ * The Salesforce > Form Captures section.
  */
 class CHIEF_SFC_Captures {
+
+	public $context;
+	public $form_screen;
+	public $list_screen;
 
 	/**
 	 * Register events to create admin pages.
 	 */
 	public function add_actions() {
 		add_action( 'admin_menu', array( $this, 'register_page' ) );
+		add_action( 'load-toplevel_page_chief-sfc-captures', array( $this, 'set_context' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ) );
+		add_action( 'wp_ajax_chief_sfc_object', array( $this, 'ajax_object' ) );
+	}
+
+	/**
+	 * Enqueue scripts/styles.
+	 */
+	public function enqueue() {
+		wp_enqueue_style( 'chief-sfc-style', CHIEF_SFC_URL . 'css/style.css' );
+	}
+
+	/**
+	 * Run before the page headers are sent. Set the context (list page or edit form screen).
+	 */
+	public function set_context() {
+		$form   = isset( $_GET['form'] ) ? (int) $_GET['form'] : false;
+		$source = isset( $_GET['source'] ) ? sanitize_key( $_GET['source'] ) : false;
+		if ( $form && $source ) {
+			$this->context = 'form';
+			$this->form_screen = new CHIEF_SFC_Form( $form, $source );
+			$this->form_screen->maybe_update();
+			$this->form_screen->add_actions();
+		} else {
+			$this->context = 'list';
+			$this->list_screen = new CHIEF_SFC_List_Table();
+		}
 	}
 
 	/**
@@ -32,33 +63,33 @@ class CHIEF_SFC_Captures {
 		?>
 		<div class="wrap">
 			<?php
-				// send to the list page or the individual form screen
-				$form   = isset( $_GET['form'] ) ? (int) $_GET['form'] : false;
-				$source = isset( $_GET['source'] ) ? sanitize_key( $_GET['source'] ) : false;
-				if ( $form && $source ) {
-					?>
-					<h2>
-						Salesforce Form Captures
-						<a class="page-title-action" href="<?php echo admin_url( 'admin.php?page=chief-sfc-captures' ); ?>">View All</a>
-					</h2>
-					<?php
-					$form_screen = new CHIEF_SFC_Form( $form, $source );
-					$form_screen->display();
-				} else {
+				if ( $this->context === 'form' ) {
+					$this->form_screen->display();
+				} elseif ( $this->context === 'list' ) {
 					?>
 					<h2>Salesforce Form Captures</h2>
 					<?php
-					$table = new CHIEF_SFC_List_Table();
-					$table->prepare_items();
-					$table->views();
-					$table->display();
+					$this->list_screen->prepare_items();
+					$this->list_screen->views();
+					$this->list_screen->display();
 				}
 			?>
 		</div>
 		<?php
 
+	}
 
+	/**
+	 * Callback for an ajax object request (i.e. the user selected Contact or Lead on the form
+	 * screen). Instantiate CHIEF_SFC_Form and echo the correct form content in response.
+	 */
+	public function ajax_object() {
+		$value  = isset( $_POST['value'] ) ? sanitize_text_field( $_POST['value'] ) : '';
+		$form   = isset( $_POST['form'] ) ? (int) $_POST['form'] : false;
+		$source = isset( $_POST['source'] ) ? sanitize_key( $_POST['source'] ) : false;
+		$form = new CHIEF_SFC_Form( $form, $source );
+		$form->view_field_matching( $value );
+		exit();
 	}
 
 }
-

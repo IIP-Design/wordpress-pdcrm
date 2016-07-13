@@ -9,6 +9,7 @@ Author URI:  http://www.agencychief.com
 
 define( 'CHIEF_SFC_PATH', plugin_dir_path( __FILE__ ) );
 define( 'CHIEF_SFC_URL', plugin_dir_url( __FILE__ ) );
+define( 'CHIEF_SFC_VERSION', '1.0' );
 
 // model
 require_once( CHIEF_SFC_PATH . 'includes/remote.php' );

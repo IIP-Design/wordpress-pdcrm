@@ -1,0 +1,13 @@
+.chief-sfc-form-page #postbox-container-1 { width:73%; }
+.chief-sfc-form-page #postbox-container-2 { width:25%; padding-left:2%; }
+.chief-sfc-form-page select { width:200px; }
+.chief-sfc-form-page .object-spinner { float:none; }
+
+.chief-sfc-form-page .enabled { color:green; }
+.chief-sfc-form-page .disabled { color:#999; }
+
+.chief-sfc-form-page .submit-container { float:none; text-align:right; padding:20px; margin-top:25px; border-top:1px solid #dedede; background:#f9f9f9; position:relative;}
+.chief-sfc-form-page #submit { padding:5px 20px; font-size:18px; height:auto; font-weight:200; }
+.chief-sfc-form-page .submitdisable { color:red; border-bottom:1px solid red; margin-right:25px; margin-top:12px; padding:1px 2px; text-decoration:none; float:left; }
+.chief-sfc-form-page .submitdisable:hover { background:red; color:#fff; }
+.chief-sfc-form-page .submit-spinner { position:absolute; top:27px; left:100px; }
