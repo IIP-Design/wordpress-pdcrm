@@ -112,10 +112,11 @@ class CHIEF_SFC_Remote {
 
 		// refresh setting
 		$body = wp_parse_args( $body, array(
-			'access_token'  => '',
-			'refresh_token' => $auth['refresh_token'], // no new refresh token is sent
-			'issued_at'     => '',
-			'instance_url'  => ''
+			'access_token'   => '',
+			'refresh_token'  => $auth['refresh_token'], // no new refresh token is sent
+			'issued_at'      => '',
+			'instance_url'   => '',
+			'original_issue' => $auth['original_issue']
 		) );
 		return update_option( CHIEF_SFC_Authorization::$setting, $body, false );
 

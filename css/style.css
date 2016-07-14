@@ -3,8 +3,8 @@
 .chief-sfc-form-page select { width:200px; }
 .chief-sfc-form-page .object-spinner { float:none; }
 
-.chief-sfc-form-page .enabled { color:green; }
-.chief-sfc-form-page .disabled { color:#999; }
+.chief-sfc-form-page .enabled, .chief-sfc-list .enabled, .chief-sfc-settings .authorized { color:green; }
+.chief-sfc-form-page .disabled, .chief-sfc-list .disabled, .chief-sfc-settings .unauthorized { color:#999; }
 
 .chief-sfc-form-page .submit-container { float:none; text-align:right; padding:20px; margin-top:25px; border-top:1px solid #dedede; background:#f9f9f9; position:relative;}
 .chief-sfc-form-page #submit { padding:5px 20px; font-size:18px; height:auto; font-weight:200; }

@@ -26,16 +26,27 @@ class CHIEF_SFC_Captures {
 	}
 
 	/**
-	 * Run before the page headers are sent. Set the context (list page or edit form screen).
+	 * Run before the page headers are sent. Set the context (list page or edit form screen),
+	 * and checks for any save/disable attempts.
 	 */
 	public function set_context() {
 		$form   = isset( $_GET['form'] ) ? (int) $_GET['form'] : false;
 		$source = isset( $_GET['source'] ) ? sanitize_key( $_GET['source'] ) : false;
+
 		if ( $form && $source ) {
 			$this->context = 'form';
 			$this->form_screen = new CHIEF_SFC_Form( $form, $source );
-			$this->form_screen->maybe_update();
+
+			// check for actions
+			$action = isset( $_REQUEST['chief_sfc_action'] ) ? sanitize_key( $_REQUEST['chief_sfc_action'] ) : false;
+			if ( $action === 'disable' ) {
+				$this->form_screen->disable();
+			} else if ( $action === 'save' ) {
+				$this->form_screen->save();
+			}
+
 			$this->form_screen->add_actions();
+
 		} else {
 			$this->context = 'list';
 			$this->list_screen = new CHIEF_SFC_List_Table();
@@ -68,10 +79,17 @@ class CHIEF_SFC_Captures {
 				} elseif ( $this->context === 'list' ) {
 					?>
 					<h2>Salesforce Form Captures</h2>
-					<?php
-					$this->list_screen->prepare_items();
-					$this->list_screen->views();
-					$this->list_screen->display();
+					<?php if ( !empty( $_GET['disabled'] ) && $_GET['disabled'] === 'true' ) { ?>
+						<div class="updated notice is-dismissible"><p>Form disabled successfully.</p></div>
+					<?php } ?>
+					<?php if ( !empty( $_GET['skipped'] ) && $_GET['skipped'] === 'disable' ) { ?>
+						<div class="error notice is-dismissible"><p>Form could not be disabled. Please try again.</p></div>
+					<?php } ?>
+					<div class="chief-sfc-list"><?php
+						$this->list_screen->prepare_items();
+						$this->list_screen->views();
+						$this->list_screen->display();
+					?></div><?php
 				}
 			?>
 		</div>

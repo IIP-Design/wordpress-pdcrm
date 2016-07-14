@@ -5,6 +5,9 @@ if( !class_exists( 'WP_List_Table' ) )
 
 class CHIEF_SFC_List_Table extends WP_List_Table {
 
+	/**
+	 * Basic setup required by WP_List_Table to get column and row info.
+	 */
 	public function prepare_items() {
 		$columns  = $this->get_columns();
 		$hidden   = array();
@@ -13,6 +16,9 @@ class CHIEF_SFC_List_Table extends WP_List_Table {
 		$this->items = $this->get_items();
 	}
 
+	/**
+	 * Show "All" so we get a quick glance at the amount.
+	 */
 	public function get_views() {
 		$count = count( $this->items );
 		$count = '<span class="count">(' . $count . ')</span>';
@@ -23,6 +29,16 @@ class CHIEF_SFC_List_Table extends WP_List_Table {
 		return $views;
 	}
 
+	/**
+	 * No bulk actions needed, so don't return default markup.
+	 */
+	protected function display_tablenav( $which ) {
+		return '';
+	}
+
+	/**
+	 * List table columns.
+	 */
 	public function get_columns() {
 		$columns = array(
 			'form'   => 'Form',
@@ -32,34 +48,55 @@ class CHIEF_SFC_List_Table extends WP_List_Table {
 		return $columns;
 	}
 
+	/**
+	 * Covering our bases.
+	 */
 	public function column_default( $item, $column_name ) {
-		return isset( $item[$column_name] ) ? $item[$column_name] : print_r( $item, true );
+		return '';
 	}
 
+	/**
+	 * Form name with contextual Edit/Disable links underneath.
+	 */
 	public function column_form( $item ) {
 		ob_start();
-		$form = wp_parse_args( $item['form'], array(
-			'form'   => '',
-			'id'     => '',
-			'source' => ''
-		) );
-		$url = admin_url( 'admin.php?page=chief-sfc-captures' );
-		$url = esc_url( add_query_arg( array(
-			'form'   => $form['id'],
-			'source' => $form['source']
-		) ), $url );
 		?>
 		<strong>
-			<a class="row-title" href="<?php echo $url; ?>"><?php echo $form['title']; ?></a>
+			<a class="row-title" href="<?php echo esc_url( $item->url ); ?>"><?php echo $item->name; ?></a>
 		</strong>
 		<?php
+
+		$actions = array(
+			'edit' => '<a href="' . esc_url( $item->url ) . '">Edit</a>',
+		);
+
+		if ( $item->is_enabled() )
+			$actions['delete'] = '<a href="' . esc_url( $item->get_disable_url() ) . '">Disable</a>';
+
+		echo $this->row_actions( $actions );
+
 		return ob_get_clean();
 	}
 
-	public function column_status( $item ) {
-		return $item['status'] ? 'Active' : 'Inactive';
+	/**
+	 * Get the human-readable label.
+	 */
+	public function column_source( $item ) {
+		return $item->source_label();
 	}
 
+	/**
+	 * Get the human-readable status. Will show if the form is saving to Salesforce and what
+	 * object it's saving as.
+	 */
+	public function column_status( $item ) {
+		return $item->get_status_label();
+	}
+
+	/**
+	 * Find all available forms. Look in compatible plugins and build a CHIEF_SFC_Form object
+	 * for each one.
+	 */
 	public function get_items() {
 		$forms = array();
 
@@ -68,34 +105,13 @@ class CHIEF_SFC_List_Table extends WP_List_Table {
 			$formidable_forms = FrmForm::getAll( array(
 				'is_template' => false
 			) );
-			foreach( $formidable_forms as $form ) {
-				$form_args = array(
-					'title'  => $form->name,
-					'id'     => $form->id,
-					'source' => 'frm'
-				);
-				$forms[] = array(
-					'form'   => $form_args,
-					'source' => 'Formidable',
-					'status' => true
-				);
-			}
-
+			foreach( $formidable_forms as $form )
+				$forms[] = new CHIEF_SFC_Form( $form->id, 'frm' );
 		}
 		if ( is_callable( array( 'WPCF7_ContactForm', 'find' ) ) ) {
 			$contact_form_7s = WPCF7_ContactForm::find();
-			foreach( $contact_form_7s as $form ) {
-				$form_args = array(
-					'title'  => $form->title(),
-					'id'     => $form->id(),
-					'source' => 'cf7'
-				);
-				$forms[] = array(
-					'form'   => $form_args,
-					'source' => 'Contact Form 7',
-					'status' => false
-				);
-			}
+			foreach( $contact_form_7s as $form )
+				$forms[] = new CHIEF_SFC_Form( $form->id(), 'cf7' );
 		}
 
 		return $forms;

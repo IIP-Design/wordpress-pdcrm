@@ -14,6 +14,7 @@ class CHIEF_SFC_Form {
 		$this->source  = sanitize_key( $source );
 
 		$this->list_url = admin_url( 'admin.php?page=chief-sfc-captures' );
+
 		$this->url = esc_url_raw( add_query_arg( array(
 			'form'   => $this->form_id,
 			'source' => $this->source
@@ -59,6 +60,13 @@ class CHIEF_SFC_Form {
 
 	public function unique_key() {
 		return $this->form_id . '_' . $this->source;
+	}
+
+	public function get_disable_url() {
+		return esc_url_raw( add_query_arg( array(
+			'chief_sfc_action'   => 'disable',
+			'_chief_sfc_disable' => wp_create_nonce( 'chief-sfc-disable' )
+		), $this->url ) );
 	}
 
 	/**
@@ -145,8 +153,8 @@ class CHIEF_SFC_Form {
 	 * Get whether or not the current form is actively syncing with Salesforce.
 	 * True for enabled, false for disabled.
 	 */
-	public function get_status() {
-		$values = array_filter( $this->values );
+	public function is_enabled() {
+		$values = array_filter( $this->values ); // do any values exist
 		return (bool) $values;
 	}
 
@@ -154,23 +162,43 @@ class CHIEF_SFC_Form {
 	 * Get the status in human-readable form.
 	 */
 	public function get_status_label() {
-		if ( $this->get_status() ) {
-			?><span class="enabled">Saving to Salesforce</span><?php
+		ob_start();
+		if ( $this->is_enabled() ) {
+			$object = isset( $this->values['object'] ) ? $this->values['object'] : '';
+			?><span class="enabled">
+				Saving to Salesforce
+				<?php if ( $object ) { ?>
+					(as <?php echo $object; ?>)
+				<?php } ?>
+			</span><?php
 		} else {
 			?><span class="disabled">Not saving to Salesforce</span><?php
 		}
-
+		return ob_get_clean();
 	}
 
 	public function display() {
+
+		// debug:
+		// echo '<pre>';
+		// print_r( $this->values );
+		// echo '</pre>';
+
 		?>
 		<h2>
 			<?php echo $this->name; ?>
 			<a class="page-title-action" href="<?php echo esc_url( $this->list_url ); ?>">View All</a>
 		</h2>
+		<?php if ( !empty( $_GET['updated'] ) && $_GET['updated'] === 'true' ) { ?>
+			<div class="updated notice is-dismissible"><p>Form saved successfully.</p></div>
+		<?php } ?>
+		<?php if ( !empty( $_GET['skipped'] ) && $_GET['skipped'] === 'save' ) { ?>
+			<div class="error notice is-dismissible"><p>Form could not be saved. Please try again.</p></div>
+		<?php } ?>
 		<div class="chief-sfc-form-page">
 			<form class="chief-sfc-form" action="<?php echo esc_url( $this->url ); ?>" method="post">
-				<?php wp_nonce_field( 'chief-sfc-form' ); ?>
+				<input type="hidden" name="chief_sfc_action" value="save" />
+				<?php wp_nonce_field( 'chief-sfc-form', '_chief_sfc_form' ); ?>
 				<div class="metabox-holder">
 					<div id="postbox-container-1" class="postbox-container">
 						<div class="meta-box-sortables">
@@ -221,12 +249,9 @@ class CHIEF_SFC_Form {
 									<p>Status: <strong><?php echo $this->get_status_label(); ?></strong></p>
 								</div>
 								<div class="submit-container">
-									<?php $disable_url = esc_url( add_query_arg( array(
-										'action'   => 'disable',
-										'disable'  => $this->unique_key(),
-										'_wpnonce' => wp_create_nonce( 'chief-sfc-disable' )
-									), $this->list_url ) ); ?>
-									<a class="submitdisable" href="<?php echo $disable_url; ?>">Disable</a>
+									<?php if ( $this->is_enabled() ) { ?>
+										<a class="submitdisable" href="<?php echo esc_url( $this->get_disable_url() ); ?>">Disable</a>
+									<?php } ?>
 									<?php submit_button( 'Save', 'primary', 'submit', false ); ?>
 									<div class="spinner submit-spinner"></div>
 								</div>
@@ -254,6 +279,8 @@ class CHIEF_SFC_Form {
 
 		$response = CHIEF_SFC_Remote::get( 'sobjects/' . $object . '/describe' );
 
+		// @todo i think an error is happening here when we need to refresh the access token
+
 		if ( is_wp_error( $response ) )
 			return array();
 
@@ -279,15 +306,15 @@ class CHIEF_SFC_Form {
 	public function view_field_matching( $object ) {
 		$sf_fields = $this->get_object_fields( $object );
 		if ( $sf_fields ) {
-			foreach( $sf_fields as $field ) {
-				$field = wp_parse_args( $field, array(
+			foreach( $sf_fields as $sf_field ) {
+				$sf_field = wp_parse_args( $sf_field, array(
 					'name'  => '',
 					'label' => ''
 				) ); ?>
 				<tr>
-					<th><?php echo esc_html( $field['label'] ); ?></th>
+					<th><?php echo esc_html( $sf_field['label'] ); ?></th>
 					<td>
-						<select name="field[<?php echo esc_attr( $field['name'] ); ?>]">
+						<select name="field[<?php echo esc_attr( $sf_field['name'] ); ?>]">
 							<option value="">&mdash; Select field &mdash;</option>
 							<?php foreach( $this->fields as $field ) {
 								$field = wp_parse_args( $field, array(
@@ -296,7 +323,7 @@ class CHIEF_SFC_Form {
 								) ); ?>
 								<option
 									value="<?php echo esc_attr( $field['name'] ); ?>"
-									<?php // selected(); ?>>
+									<?php selected( $field['name'], $this->values['fields'][$sf_field['name']]); ?>>
 									<?php echo esc_html( $field['label'] ); ?>
 								</option>
 							<?php } ?>
@@ -314,7 +341,7 @@ class CHIEF_SFC_Form {
 	 */
 	public function maybe_update() {
 
-		$nonce = isset( $_POST['_wpnonce'] ) ? $_POST['_wpnonce'] : false;
+
 		if ( !$nonce )
 			return;
 
@@ -329,7 +356,12 @@ class CHIEF_SFC_Form {
 	/**
 	 * Sanitize the form capture data and save to an option.
 	 */
-	private function save() {
+	public function save() {
+
+		// don't do a thing unless the nonce passes
+		$nonce = isset( $_POST['_chief_sfc_form'] ) ? $_POST['_chief_sfc_form'] : false;
+		if ( !$nonce || !wp_verify_nonce( $nonce, 'chief-sfc-form' ) )
+			$this->fail_update( 'save' );
 
 		// sanitize
 		$sanitized_object = isset( $_POST['object'] ) ? sanitize_text_field( $_POST['object'] ) : '';
@@ -350,23 +382,49 @@ class CHIEF_SFC_Form {
 		);
 		update_option( 'chief_sfc_captures', $option );
 
-		// redirect to success/failure
-		$url = esc_url_raw( add_query_arg( 'updated', true, $this->url ) );
+		// redirect
+		$url = esc_url_raw( add_query_arg( 'updated', 'true', $this->url ) );
 		wp_redirect( $url );
 		exit;
 
 	}
 
 	/**
-	 * Disable the current form capture.
+	 * Disable the current form.
 	 */
-	private function disable() {
+	public function disable() {
 
-		// verify nonce
+		// don't do a thing unless the nonce passes
+		$nonce = isset( $_GET['_chief_sfc_disable'] ) ? $_GET['_chief_sfc_disable'] : false;
+		if ( !$nonce || !wp_verify_nonce( $nonce, 'chief-sfc-disable' ) )
+			$this->fail_update( 'disable' );
 
-		// update option
+		$option = get_option( 'chief_sfc_captures', array() );
+		$key    = $this->unique_key();
 
-		// redirect to list page confirmation/failure
+		unset( $option[$key] );
+
+		update_option( 'chief_sfc_captures', $option );
+
+		// redirect to success/failure
+		$url = esc_url_raw( add_query_arg( 'disabled', 'true', $this->list_url ) );
+		wp_redirect( $url );
+		exit;
+
+	}
+
+	/**
+	 * When an updated is attempted but it doesn't pass the nonce check, redirect and provide
+	 * an error message.
+	 */
+	public function fail_update( $context = 'save' ) {
+		if ( !in_array( $context, array( 'save', 'disable'  ) ) )
+			return;
+
+		$url = ( $context === 'save' ) ? $this->url : $this->list_url;
+		$url = esc_url_raw( add_query_arg( 'skipped', $context, $url ) );
+		wp_redirect( $url );
+		exit;
 
 	}
 

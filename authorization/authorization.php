@@ -129,6 +129,7 @@ class CHIEF_SFC_Authorization {
 			'issued_at'     => '',
 			'instance_url'  => ''
 		) );
+		$body['original_issue'] = $body['issued_at'];
 		update_option( self::$setting, $body, $autoload = false );
 
 		// redirect to success
