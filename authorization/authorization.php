@@ -35,7 +35,7 @@ class CHIEF_SFC_Authorization {
 	static public function authorize( $current_screen ) {
 
 		// ensure we're on the right page and the form was just submitted
-		if ( $current_screen->base !== 'salesforce_page_chief-sfc-settings' )
+		if ( $current_screen->base !== 'form-captures_page_chief-sfc-settings' )
 			return;
 		if ( !isset( $_GET['settings-updated'] ) )
 			return;
