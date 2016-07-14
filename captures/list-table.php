@@ -101,17 +101,35 @@ class CHIEF_SFC_List_Table extends WP_List_Table {
 		$forms = array();
 
 		// check for compatible plugins
+
+		// formidable
 		if ( is_callable( array( 'FrmForm', 'getAll' ) ) ) {
 			$formidable_forms = FrmForm::getAll( array(
 				'is_template' => false
 			) );
-			foreach( $formidable_forms as $form )
-				$forms[] = new CHIEF_SFC_Form( $form->id, 'frm' );
+			if ( $formidable_forms ) {
+				foreach( $formidable_forms as $form )
+					$forms[] = new CHIEF_SFC_Form( $form->id, 'frm' );
+			}
 		}
+
+		// contact form 7
 		if ( is_callable( array( 'WPCF7_ContactForm', 'find' ) ) ) {
 			$contact_form_7s = WPCF7_ContactForm::find();
-			foreach( $contact_form_7s as $form )
-				$forms[] = new CHIEF_SFC_Form( $form->id(), 'cf7' );
+			if ( $contact_form_7s ) {
+				foreach( $contact_form_7s as $form )
+					$forms[] = new CHIEF_SFC_Form( $form->id(), 'cf7' );
+			}
+		}
+
+		// gravity forms
+		if ( is_callable( array( 'GFFormsModel', 'get_forms' ) ) ) {
+			$gravity_forms = GFFormsModel::get_forms();
+			if ( $gravity_forms ) {
+				foreach( $gravity_forms as $form ) {
+					$forms[] = new CHIEF_SFC_Form( $form->id, 'grv' );
+				}
+			}
 		}
 
 		return $forms;

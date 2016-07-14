@@ -32,7 +32,7 @@ function chief_sfc_boot() {
 	add_action( 'admin_menu', function() {
 		add_menu_page(
 			'',
-			'Salesforce',
+			'Form Captures',
 			'manage_options',
 			'chief-sfc-captures',
 			'',

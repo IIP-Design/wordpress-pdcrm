@@ -51,6 +51,10 @@ class CHIEF_SFC_Form {
 				if ( is_callable( array( 'WPCF7_ContactForm', 'get_instance' ) ) )
 					$form = WPCF7_ContactForm::get_instance( $this->form_id );
 				break;
+			case 'grv' :
+				if ( is_callable( array( 'GFFormsModel', 'get_form_meta' ) ) )
+					$form = GFFormsModel::get_form_meta( $this->form_id );
+				break;
 		}
 		if ( is_callable( array( $this, 'normalize_' . $this->source . '_form' ) ) )
 			$form = call_user_func( array( $this, 'normalize_' . $this->source . '_form' ), $form );
@@ -109,6 +113,31 @@ class CHIEF_SFC_Form {
 
 		$form = array(
 			'name'   => sanitize_text_field( $form->title() ),
+			'fields' => $fields
+		);
+		return $form;
+	}
+
+	/**
+	 * Get fields and pertinent info from a Gravity Forms form.
+	 */
+	private function normalize_grv_form( $form ) {
+		$fields = array();
+
+		$form = wp_parse_args( $form, array(
+			'title'  => '',
+			'fields' => array()
+		) );
+
+		foreach( $form['fields'] as $field ) {
+			$fields[] = array(
+				'name'  => 'input_' . $field->id,
+				'label' => $field->label
+			);
+		}
+
+		$form = array(
+			'name'   => $form['title'],
 			'fields' => $fields
 		);
 		return $form;
