@@ -82,7 +82,7 @@ class CHIEF_SFC_Form {
 
 		foreach( $frm_fields as $field ) {
 			$fields[] = array(
-				'name'  => 'item_meta[' . $field->id . ']',
+				'name'  => $field->id, // formidable fields get stored in item_meta[fieldid] format. we just grab field id.
 				'label' => $field->name ? $field->name : '(no label)'
 			);
 		}

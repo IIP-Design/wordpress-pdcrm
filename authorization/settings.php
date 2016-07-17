@@ -94,7 +94,7 @@ class CHIEF_SFC_Settings extends CHIEF_SFC_Settings_Abstract {
 	public function get_intro() {
 		ob_start();
 		?>
-		<p>Before using this plugin, you must authorize this website with Salesforce. An HTTPS connection is required.</p>
+		<p>Before using this plugin, you must authorize this website with Salesforce:</p>
 		<ol>
 			<li>Log into Salesforce and create a new Connected App. (Setup > Create > Apps > Connected Apps)</li>
 			<li>Enter an App Name and Contact Email.</li>
@@ -103,7 +103,7 @@ class CHIEF_SFC_Settings extends CHIEF_SFC_Settings_Abstract {
 				<p>
 					<ol>
 						<li>Select "Enable Oauth Settings".</li>
-						<li>Enter this site's URL.</li>
+						<li>Enter this site's URL. This should exactly match the <a href="<?php echo esc_url( admin_url( 'options-general.php' ) ); ?>">Site Address field in Settings > General</a> and must use HTTPS.</li>
 						<li>Under "Selected Oauth Scopes", add "Full access" and "Perform requests on your behalf at any time".</li>
 					</ol>
 				</p>
@@ -141,7 +141,7 @@ class CHIEF_SFC_Settings extends CHIEF_SFC_Settings_Abstract {
 
 		$response = CHIEF_SFC_Remote::test();
 
-		if ( is_wp_error( $response ) ) {
+		if ( is_wp_error( $response ) || !is_object( $response ) ) {
 			?><p class="unauthorized">Not authorized.</p><?php
 		} else {
 			?>

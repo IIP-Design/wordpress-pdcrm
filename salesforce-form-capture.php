@@ -13,6 +13,7 @@ define( 'CHIEF_SFC_VERSION', '1.0' );
 
 // model
 require_once( CHIEF_SFC_PATH . 'includes/remote.php' );
+require_once( CHIEF_SFC_PATH . 'includes/capture.php' );
 
 // authorization settings
 require_once( CHIEF_SFC_PATH . 'authorization/settings-abstract.php' );
@@ -26,6 +27,9 @@ require_once( CHIEF_SFC_PATH . 'captures/captures.php' );
 
 function chief_sfc_boot() {
 
+	CHIEF_SFC_Capture::add_actions();
+
+	// @todo maybe merge into Settings
 	CHIEF_SFC_Authorization::add_actions();
 
 	// register top-level admin menu

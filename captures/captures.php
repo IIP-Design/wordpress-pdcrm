@@ -7,6 +7,7 @@ class CHIEF_SFC_Captures {
 	public $context;
 	public $form_screen;
 	public $list_screen;
+	public $authorized;
 
 	/**
 	 * Register events to create admin pages.
@@ -26,10 +27,35 @@ class CHIEF_SFC_Captures {
 	}
 
 	/**
+	 * Register admin pages.
+	 */
+	public function register_page() {
+		add_submenu_page(
+			'chief-sfc-captures',
+			'Salesforce Form Captures',
+			'Form Captures',
+			'manage_options',
+			'chief-sfc-captures',
+			array( $this, 'view_page' )
+		);
+	}
+
+	/**
 	 * Run before the page headers are sent. Set the context (list page or edit form screen),
 	 * and checks for any save/disable attempts.
 	 */
 	public function set_context() {
+
+		// check authorization
+		$response = CHIEF_SFC_Remote::test();
+		if ( is_wp_error( $response ) || !is_object( $response ) )
+			$this->authorized = false;
+		else
+			$this->authorized = true;
+
+		if ( !$this->authorized )
+			return;
+
 		$form   = isset( $_GET['form'] ) ? (int) $_GET['form'] : false;
 		$source = isset( $_GET['source'] ) ? sanitize_key( $_GET['source'] ) : false;
 
@@ -54,42 +80,35 @@ class CHIEF_SFC_Captures {
 	}
 
 	/**
-	 * Register admin pages.
-	 */
-	public function register_page() {
-		add_submenu_page(
-			'chief-sfc-captures',
-			'Salesforce Form Captures',
-			'Form Captures',
-			'manage_options',
-			'chief-sfc-captures',
-			array( $this, 'view_page' )
-		);
-	}
-
-	/**
 	 * Set up the main page and load the view.
 	 */
 	public function view_page() {
 		?>
 		<div class="wrap">
 			<?php
-				if ( $this->context === 'form' ) {
-					$this->form_screen->display();
-				} elseif ( $this->context === 'list' ) {
+				if ( $this->authorized ) {
+					if ( $this->context === 'form' ) {
+						$this->form_screen->display();
+					} elseif ( $this->context === 'list' ) {
+						?>
+						<h2>Salesforce Form Captures</h2>
+						<?php if ( !empty( $_GET['disabled'] ) && $_GET['disabled'] === 'true' ) { ?>
+							<div class="updated notice is-dismissible"><p>Form disabled successfully.</p></div>
+						<?php } ?>
+						<?php if ( !empty( $_GET['skipped'] ) && $_GET['skipped'] === 'disable' ) { ?>
+							<div class="error notice is-dismissible"><p>Form could not be disabled. Please try again.</p></div>
+						<?php } ?>
+						<div class="chief-sfc-list"><?php
+							$this->list_screen->prepare_items();
+							$this->list_screen->views();
+							$this->list_screen->display();
+						?></div><?php
+					}
+				} else {
 					?>
 					<h2>Salesforce Form Captures</h2>
-					<?php if ( !empty( $_GET['disabled'] ) && $_GET['disabled'] === 'true' ) { ?>
-						<div class="updated notice is-dismissible"><p>Form disabled successfully.</p></div>
-					<?php } ?>
-					<?php if ( !empty( $_GET['skipped'] ) && $_GET['skipped'] === 'disable' ) { ?>
-						<div class="error notice is-dismissible"><p>Form could not be disabled. Please try again.</p></div>
-					<?php } ?>
-					<div class="chief-sfc-list"><?php
-						$this->list_screen->prepare_items();
-						$this->list_screen->views();
-						$this->list_screen->display();
-					?></div><?php
+					<div class="notice-info notice"><p>Before using this plugin you must authenticate with Salesforce. Follow the instructions at <a href="<?php echo esc_url( admin_url( 'admin.php?page=chief-sfc-settings' ) ); ?>">Form Captures > Authorization</a>.</p></div>
+					<?php
 				}
 			?>
 		</div>
