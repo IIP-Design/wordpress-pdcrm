@@ -135,17 +135,31 @@ class CHIEF_SFC_Form {
 		) );
 
 		foreach( $form['fields'] as $field ) {
-			$fields[] = array(
-				'name'  => 'input_' . $field->id,
-				'label' => $field->label
-			);
+
+			// support for Gravity Form's multi-part name field
+			$nameFormat = isset( $field->nameFormat ) ? $field->nameFormat : '';
+			if ( $field->type === 'name' && $nameFormat !== 'simple' ) {
+				foreach( $field->inputs as $name_part ) {
+					$fields[] = array(
+						'name'  => $name_part['id'],
+						'label' => $name_part['label']
+					);
+				}
+
+			// normal fields
+			} else {
+				$fields[] = array(
+					'name'  => $field->id,
+					'label' => $field->label
+				);
+			}
 		}
 
-		$form = array(
+		$new_args = array(
 			'name'   => $form['title'],
 			'fields' => $fields
 		);
-		return $form;
+		return $new_args;
 	}
 
 	/**

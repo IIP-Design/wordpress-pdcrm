@@ -19,7 +19,12 @@ class CHIEF_SFC_Capture {
 	 */
 	static public function capture_frm( $entry_id, $form_id ) {
 		$form = new CHIEF_SFC_Form( $form_id, 'frm' );
-		self::send_to_salesforce( $form );
+
+		// get values in a flat array and sanitize
+		$item_meta = isset( $_POST['item_meta'] ) ? (array) $_POST['item_meta'] : array();
+		$values = array_map( 'sanitize_text_field', $item_meta );
+
+		self::send_to_salesforce( $form, $values );
 	}
 
 	/**
@@ -27,22 +32,36 @@ class CHIEF_SFC_Capture {
 	 */
 	static public function capture_cf7( $contact_form ) {
 		$form = new CHIEF_SFC_Form( $contact_form->id(), 'cf7' );
-		self::send_to_salesforce( $form );
+
+		// get values in a flat array. cf7 already sanitized.
+		$submission = WPCF7_Submission::get_instance();
+		$values = $submission->get_posted_data();
+
+		self::send_to_salesforce( $form, $values );
 	}
 
 	/**
 	 * Get the current Gravity Form submission's form object.
+	 *
+	 * The params here are sent as arrays. The Gravity Forms documentation calls them objects; they're not.
 	 */
 	static public function capture_grv( $entry, $form ) {
-		$form = new CHIEF_SFC_Form( $form->id, 'grv' );
-		self::send_to_salesforce( $form );
+		$form = new CHIEF_SFC_Form( $form['id'], 'grv' );
+
+		// get values in a flat array. gravity forms already sanitized them.
+		// there's extra info in $entry too but it doesn't matter
+		$values = $entry;
+
+		self::send_to_salesforce( $form, $values );
 	}
 
 	/**
-	 * Given a form object, grab the object and field values, sanitize, and create a new record
-	 * in Salesforce.
+	 * Create a new record in Salesforce.
+	 *
+	 * @param  object $form  A CHIEF_SFC_Form object.
+	 * @param  array $values A flat associative array of pre-sanitized form submission values.
 	 */
-	static public function send_to_salesforce( $form ) {
+	static public function send_to_salesforce( $form, $values = array() ) {
 
 		if ( !$form->is_enabled() )
 			return;
@@ -67,22 +86,9 @@ class CHIEF_SFC_Capture {
 		foreach( $fields as $sf_field => $wp_field ) {
 			$value = '';
 
-			// if a matching field exists, find its value
-			if ( $wp_field ) {
-
-				if ( $form->source === 'frm' ) {
-
-					// formidable form values are stored within $_POST[item_meta][fieldid]
-					$value = isset( $_POST['item_meta'][$wp_field] ) ? sanitize_text_field( $_POST['item_meta'][$wp_field] ) : '';
-
-				} else {
-
-					// normally, form values are stored within $_POST[fieldname]
-					$value = isset( $_POST[$wp_field] ) ? sanitize_text_field( $_POST[$wp_field] ) : '';
-
-				}
-
-			}
+			// match with the field from $values
+			if ( $wp_field )
+				$value = isset( $values[$wp_field] ) ? $values[$wp_field] : '';
 
 			// if we don't have anything for a required field, add a dummy value
 			if ( !$value && in_array( $sf_field, $required_fields ) )
@@ -94,11 +100,13 @@ class CHIEF_SFC_Capture {
 
 		}
 
-
-		$result = CHIEF_SFC_Remote::post( 'sobjects/' . $object, $data );
+		$result = CHIEF_SFC_Remote::post( "sobjects/{$object}", $data );
 
 		// debug:
-		// echo '<pre>'; print_r( $result ); echo '</pre>';
+		// echo '<pre>';
+		// print_r( $data );
+		// print_r( $result );
+		// echo '</pre>';
 		// exit;
 
 	}
