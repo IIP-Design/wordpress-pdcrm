@@ -69,6 +69,8 @@ class CHIEF_SFC_Captures {
 				$this->form_screen->disable();
 			} else if ( $action === 'save' ) {
 				$this->form_screen->save();
+			} else if ( $action === 'objcache' ) {
+				$this->form_screen->clear_object_cache();
 			}
 
 			$this->form_screen->add_actions();

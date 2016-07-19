@@ -104,10 +104,15 @@ class CHIEF_SFC_Form {
 			$manager = WPCF7_ShortcodeManager::get_instance();
 			$scanned_fields = $manager->scan_shortcode( $form->prop( 'form' ) );
 			foreach( $scanned_fields as $field ) {
-				$fields[] = array(
-					'name'  => $field['name'],
-					'label' => $field['name']
-				);
+				$field = wp_parse_args( $field, array(
+					'name' => '',
+					'type' => ''
+				) );
+				if ( $field['type'] !== 'submit' )
+					$fields[] = array(
+						'name'  => $field['name'],
+						'label' => $field['name']
+					);
 			}
 		}
 
@@ -224,6 +229,12 @@ class CHIEF_SFC_Form {
 		<?php if ( !empty( $_GET['skipped'] ) && $_GET['skipped'] === 'save' ) { ?>
 			<div class="error notice is-dismissible"><p>Form could not be saved. Please try again.</p></div>
 		<?php } ?>
+		<?php if ( !empty( $_GET['message'] ) && $_GET['message'] === 'objcache' ) { ?>
+			<div class="updated notice is-dismissible"><p>Cache cleared.</p></div>
+		<?php } ?>
+		<?php if ( !empty( $_GET['skipped'] ) && $_GET['skipped'] === 'objcache' ) { ?>
+			<div class="error notice is-dismissible"><p>The cache failed to clear.</p></div>
+		<?php } ?>
 		<div class="chief-sfc-form-page">
 			<form class="chief-sfc-form" action="<?php echo esc_url( $this->url ); ?>" method="post">
 				<input type="hidden" name="chief_sfc_action" value="save" />
@@ -255,7 +266,9 @@ class CHIEF_SFC_Form {
 													<?php } ?>
 												</select>
 												<span class="spinner object-spinner"></span>
-												<p class="howto">Select the Salesforce object in which to save this form's submissions.</p>
+												<p class="howto">
+													Select the Salesforce object in which to save this form's submissions.
+												</p>
 											</td>
 										</tr>
 										<?php if ( $this->values['object'] ) {
@@ -300,15 +313,31 @@ class CHIEF_SFC_Form {
 		) );
 	}
 
+	/**
+	 * Get Salesforce object fields. Once we grab them once they are cached onto
+	 * the current site to avoid an API call. The cache can be refreshed on any
+	 * form edit screen.
+	 */
 	public function get_object_fields( $object = '' ) {
+		// debug: delete_option( 'chief_sfc_object_fields_' . $object );
+		$fields = get_option( 'chief_sfc_object_fields_' . sanitize_key( $object ), array() );
+		if ( empty( $fields ) ) {
+			$fields = $this->get_remote_object_fields( $object );
+			update_option( 'chief_sfc_object_fields_' . sanitize_key( $object ), $fields );
+		}
+		return $fields;
+	}
+
+	/**
+	 * Use the Salesforce API to grab all the fields associated with the given object.
+	 */
+	public function get_remote_object_fields( $object = '' ) {
 		if ( !in_array( $object, $this->get_objects() ) )
 			return array();
 
 		$object = sanitize_text_field( $object );
 
 		$response = CHIEF_SFC_Remote::get( 'sobjects/' . $object . '/describe' );
-
-		// @todo i think an error is happening here when we need to refresh the access token
 
 		if ( is_wp_error( $response ) )
 			return array();
@@ -321,11 +350,17 @@ class CHIEF_SFC_Form {
 
 		$fields = array();
 		foreach ( $response->fields as $fieldobj ) {
-			if( $fieldobj->updateable ) {
-				$fields[] = array(
-					'name'  => $fieldobj->name,
-					'label' => $fieldobj->label
+			if( $fieldobj->updateable && $fieldobj->createable && !$fieldobj->defaultedOnCreate ) {
+
+				$required = false;
+				if ( !$fieldobj->nillable )
+					$required = true;
+
+				$fields[$fieldobj->name] = array(
+					'label'    => $fieldobj->label,
+					'required' => $required
 				);
+
 			}
 		}
 
@@ -333,17 +368,32 @@ class CHIEF_SFC_Form {
 	}
 
 	public function view_field_matching( $object ) {
+
+		// clear cache button
+		$url = esc_url_raw( add_query_arg( array(
+			'chief_sfc_action'   => 'objcache',
+			'_chief_sfc_objcache' => wp_create_nonce( 'chief-sfc-objcache' )
+		), $this->url ) );
+		?>
+		<tr>
+			<th></th>
+			<td><a class="button-secondary" href="<?php echo $url; ?>">Clear cache</a></td>
+		</tr>
+		<?php
+
 		$sf_fields = $this->get_object_fields( $object );
 		if ( $sf_fields ) {
-			foreach( $sf_fields as $sf_field ) {
+			foreach( $sf_fields as $sf_field_name => $sf_field ) {
 				$sf_field = wp_parse_args( $sf_field, array(
-					'name'  => '',
-					'label' => ''
+					'label'    => '',
+					'required' => false
 				) ); ?>
 				<tr>
-					<th><?php echo esc_html( $sf_field['label'] ); ?></th>
+					<th>
+						<?php echo esc_html( $sf_field['label'] ); ?>
+					</th>
 					<td>
-						<select name="field[<?php echo esc_attr( $sf_field['name'] ); ?>]">
+						<select name="field[<?php echo esc_attr( $sf_field_name ); ?>]">
 							<option value="">&mdash; Select field &mdash;</option>
 							<?php foreach( $this->fields as $field ) {
 								$field = wp_parse_args( $field, array(
@@ -352,34 +402,18 @@ class CHIEF_SFC_Form {
 								) ); ?>
 								<option
 									value="<?php echo esc_attr( $field['name'] ); ?>"
-									<?php selected( $field['name'], $this->values['fields'][$sf_field['name']]); ?>>
+									<?php selected( $field['name'], $this->values['fields'][$sf_field_name]); ?>>
 									<?php echo esc_html( $field['label'] ); ?>
 								</option>
 							<?php } ?>
 						</select>
+						<?php if ( $sf_field['required'] ) { ?>
+							<span class="required">required&nbsp;by&nbsp;Salesforce</span>
+						<?php } ?>
 					</td>
 				</tr>
 			<?php }
 		}
-	}
-
-	/**
-	 * Check whether we need to save or disable the current form capture.
-	 *
-	 * This runs in the load-{slug} hook, so it's already limited to only the Captures list/edit pages.
-	 */
-	public function maybe_update() {
-
-
-		if ( !$nonce )
-			return;
-
-		if ( wp_verify_nonce( $nonce, 'chief-sfc-form' ) )
-			$this->save();
-
-		if ( wp_verify_nonce( $nonce, 'chief-sfc-disable' ) )
-			$this->disable();
-
 	}
 
 	/**
@@ -419,6 +453,28 @@ class CHIEF_SFC_Form {
 	}
 
 	/**
+	 * Clear the object field cache, then reload the page.
+	 *
+	 * This has nothing to do with WordPress's object cache.
+	 */
+	public function clear_object_cache() {
+
+		// don't do a thing unless the nonce passes
+		$nonce = isset( $_GET['_chief_sfc_objcache'] ) ? $_GET['_chief_sfc_objcache'] : false;
+		if ( !$nonce || !wp_verify_nonce( $nonce, 'chief-sfc-objcache' ) )
+			$this->fail_update( 'objcache' );
+
+		if ( isset( $this->values['object'] ) )
+			delete_option( 'chief_sfc_object_fields_' . $this->values['object'] );
+
+		// redirect
+		$url = esc_url_raw( add_query_arg( 'message', 'objcache', $this->url ) );
+		wp_redirect( $url );
+		exit;
+
+	}
+
+	/**
 	 * Disable the current form.
 	 */
 	public function disable() {
@@ -447,10 +503,10 @@ class CHIEF_SFC_Form {
 	 * an error message.
 	 */
 	public function fail_update( $context = 'save' ) {
-		if ( !in_array( $context, array( 'save', 'disable'  ) ) )
+		if ( !in_array( $context, array( 'save', 'disable', 'objcache'  ) ) )
 			return;
 
-		$url = ( $context === 'save' ) ? $this->url : $this->list_url;
+		$url = ( $context === 'disable' ) ? $this->list_url : $this->url;
 		$url = esc_url_raw( add_query_arg( 'skipped', $context, $url ) );
 		wp_redirect( $url );
 		exit;
