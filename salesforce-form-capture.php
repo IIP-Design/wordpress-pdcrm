@@ -11,46 +11,29 @@ define( 'CHIEF_SFC_PATH', plugin_dir_path( __FILE__ ) );
 define( 'CHIEF_SFC_URL', plugin_dir_url( __FILE__ ) );
 define( 'CHIEF_SFC_VERSION', '1.0' );
 
-// model
+require_once( CHIEF_SFC_PATH . 'includes/form.php' );
 require_once( CHIEF_SFC_PATH . 'includes/remote.php' );
-require_once( CHIEF_SFC_PATH . 'includes/capture.php' );
 
-// authorization settings
-require_once( CHIEF_SFC_PATH . 'authorization/settings-abstract.php' );
-require_once( CHIEF_SFC_PATH . 'authorization/settings.php' );
-require_once( CHIEF_SFC_PATH . 'authorization/authorization.php' );
+require_once( CHIEF_SFC_PATH . 'public/capture.php' );
 
-// form captures - main ui
-require_once( CHIEF_SFC_PATH . 'captures/list-table.php' );
-require_once( CHIEF_SFC_PATH . 'captures/form.php' );
-require_once( CHIEF_SFC_PATH . 'captures/captures.php' );
+require_once( CHIEF_SFC_PATH . 'admin/captures.php' );
+require_once( CHIEF_SFC_PATH . 'admin/list-table.php' );
+require_once( CHIEF_SFC_PATH . 'admin/edit-form.php' );
+
+require_once( CHIEF_SFC_PATH . 'admin/authorization.php' );
 
 function chief_sfc_boot() {
 
-	CHIEF_SFC_Capture::add_actions();
+	// add hooks to capture forms
+	CHIEF_SFC_Capture::init();
 
-	// @todo maybe merge into Settings
-	CHIEF_SFC_Authorization::add_actions();
-
-	// register top-level admin menu
-	add_action( 'admin_menu', function() {
-		add_menu_page(
-			'',
-			'Form Captures',
-			'manage_options',
-			'chief-sfc-captures',
-			'',
-			'dashicons-feedback'
-		);
-	} );
-
-	// add captures ui
+	// add form capture UI
 	$captures = new CHIEF_SFC_Captures();
 	$captures->add_actions();
 
-	// add settings
-	$settings = new CHIEF_SFC_Settings();
-	$settings->add_actions();
+	// add authorization settings
+	CHIEF_SFC_Authorization::init();
+
 
 }
 add_action( 'plugins_loaded', 'chief_sfc_boot' );

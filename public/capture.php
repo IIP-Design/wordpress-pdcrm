@@ -6,11 +6,11 @@
 class CHIEF_SFC_Capture {
 
 	/**
-	 * Hook into the form-submission actions of each supported plugin.
+	 * Hook into the supported forms and attempt to capture them and send to Salesforce.
 	 */
-	static public function add_actions() {
+	static public function init() {
 		add_action( 'frm_after_create_entry', array( __CLASS__, 'capture_frm' ), 30, 2 );
-		add_action( 'wpcf7_mail_sent', array( __CLASS__, 'capture_cf7' ) );
+		add_action( 'wpcf7_mail_sent',        array( __CLASS__, 'capture_cf7' ) );
 		add_action( 'gform_after_submission', array( __CLASS__, 'capture_grv' ), 10, 2 );
 	}
 

@@ -9,7 +9,7 @@ class CHIEF_SFC_Remote {
 	 */
 	static public function request( $uri = '', $params = array(), $method = 'GET', $attempt_refresh = true ) {
 
-		$auth = get_option( CHIEF_SFC_Authorization::$setting, array() );
+		$auth = get_option( CHIEF_SFC_Authorization::$tokens_setting, array() );
 		$auth = wp_parse_args( $auth, array(
 			'access_token' => '',
 			'instance_url' => ''
@@ -79,8 +79,8 @@ class CHIEF_SFC_Remote {
 	 */
 	static public function refresh_token() {
 
-		$keys = get_option( CHIEF_SFC_Settings::$setting, array() );
-		$auth = get_option( CHIEF_SFC_Authorization::$setting, array() );
+		$keys = get_option( CHIEF_SFC_Authorization::$client_setting, array() );
+		$auth = get_option( CHIEF_SFC_Authorization::$tokens_setting, array() );
 
 		$success = true;
 
@@ -109,7 +109,7 @@ class CHIEF_SFC_Remote {
 			'instance_url'   => '',
 			'original_issue' => $auth['original_issue']
 		) );
-		return update_option( CHIEF_SFC_Authorization::$setting, $body, false );
+		return update_option( CHIEF_SFC_Authorization::$tokens_setting, $body, false );
 
 	}
 
@@ -134,7 +134,7 @@ class CHIEF_SFC_Remote {
 	 * Revoke authorization with Salesforce.
 	 */
 	static public function revoke() {
-		$settings = get_option( CHIEF_SFC_Authorization::$setting, array() );
+		$settings = get_option( CHIEF_SFC_Authorization::$tokens_setting, array() );
 		$settings = wp_parse_args( $settings, array(
 			'refresh_token' => ''
 		) );
@@ -143,7 +143,7 @@ class CHIEF_SFC_Remote {
 		$data = wp_remote_get( $url );
 
 		// even if the response fails, at least delete all the auth data
-		delete_option( CHIEF_SFC_Authorization::$setting );
+		delete_option( CHIEF_SFC_Authorization::$tokens_setting );
 
 		return $data;
 	}
@@ -154,7 +154,7 @@ class CHIEF_SFC_Remote {
 	static public function test( $attempt_refresh = true ) {
 
 		// fail early if no client keys exist
-		$client_keys = get_option( CHIEF_SFC_Settings::$setting, array() );
+		$client_keys = get_option( CHIEF_SFC_Authorization::$client_setting, array() );
 		$client_keys = array_filter( $client_keys );
 		if ( count( $client_keys ) < 2 )
 			return new WP_Error( 'missing_client_keys', 'The Consumer Key and Consumer Secret are required.' );

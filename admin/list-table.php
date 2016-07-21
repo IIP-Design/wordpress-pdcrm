@@ -3,6 +3,9 @@
 if( !class_exists( 'WP_List_Table' ) )
 	require_once( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
 
+/**
+ * The list table display for the main Form Captures admin page.
+ */
 class CHIEF_SFC_List_Table extends WP_List_Table {
 
 	/**
@@ -62,7 +65,7 @@ class CHIEF_SFC_List_Table extends WP_List_Table {
 		ob_start();
 		?>
 		<strong>
-			<a class="row-title" href="<?php echo esc_url( $item->url ); ?>"><?php echo $item->name; ?></a>
+			<a class="row-title" href="<?php echo esc_url( $item->url ); ?>"><?php echo $item->form->name; ?></a>
 		</strong>
 		<?php
 
@@ -70,7 +73,7 @@ class CHIEF_SFC_List_Table extends WP_List_Table {
 			'edit' => '<a href="' . esc_url( $item->url ) . '">Edit</a>',
 		);
 
-		if ( $item->is_enabled() )
+		if ( $item->form->is_enabled() )
 			$actions['delete'] = '<a href="' . esc_url( $item->get_disable_url() ) . '">Disable</a>';
 
 		echo $this->row_actions( $actions );
@@ -82,7 +85,7 @@ class CHIEF_SFC_List_Table extends WP_List_Table {
 	 * Get the human-readable label.
 	 */
 	public function column_source( $item ) {
-		return $item->source_label();
+		return $item->form->get_source_label();
 	}
 
 	/**
@@ -90,7 +93,7 @@ class CHIEF_SFC_List_Table extends WP_List_Table {
 	 * object it's saving as.
 	 */
 	public function column_status( $item ) {
-		return $item->get_status_label();
+		return $item->form->get_status_label();
 	}
 
 	/**
@@ -108,8 +111,9 @@ class CHIEF_SFC_List_Table extends WP_List_Table {
 				'is_template' => false
 			) );
 			if ( $formidable_forms ) {
-				foreach( $formidable_forms as $form )
-					$forms[] = new CHIEF_SFC_Form( $form->id, 'frm' );
+				foreach( $formidable_forms as $form ) {
+					$forms[] = new CHIEF_SFC_Edit_Form( $form->id, 'frm' );
+				}
 			}
 		}
 
@@ -117,8 +121,9 @@ class CHIEF_SFC_List_Table extends WP_List_Table {
 		if ( is_callable( array( 'WPCF7_ContactForm', 'find' ) ) ) {
 			$contact_form_7s = WPCF7_ContactForm::find();
 			if ( $contact_form_7s ) {
-				foreach( $contact_form_7s as $form )
-					$forms[] = new CHIEF_SFC_Form( $form->id(), 'cf7' );
+				foreach( $contact_form_7s as $form ) {
+					$forms[] = new CHIEF_SFC_Edit_Form( $form->id(), 'cf7' );
+				}
 			}
 		}
 
@@ -127,7 +132,7 @@ class CHIEF_SFC_List_Table extends WP_List_Table {
 			$gravity_forms = GFFormsModel::get_forms();
 			if ( $gravity_forms ) {
 				foreach( $gravity_forms as $form ) {
-					$forms[] = new CHIEF_SFC_Form( $form->id, 'grv' );
+					$forms[] = new CHIEF_SFC_Edit_Form( $form->id, 'grv' );
 				}
 			}
 		}
