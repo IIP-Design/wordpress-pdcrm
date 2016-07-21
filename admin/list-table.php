@@ -112,7 +112,8 @@ class CHIEF_SFC_List_Table extends WP_List_Table {
 			) );
 			if ( $formidable_forms ) {
 				foreach( $formidable_forms as $form ) {
-					$forms[] = new CHIEF_SFC_Edit_Form( $form->id, 'frm' );
+					$form_screen = new CHIEF_SFC_Edit_Form( $form->id, 'frm' );
+					$forms[$form_screen->form->name] = $form_screen;
 				}
 			}
 		}
@@ -122,7 +123,8 @@ class CHIEF_SFC_List_Table extends WP_List_Table {
 			$contact_form_7s = WPCF7_ContactForm::find();
 			if ( $contact_form_7s ) {
 				foreach( $contact_form_7s as $form ) {
-					$forms[] = new CHIEF_SFC_Edit_Form( $form->id(), 'cf7' );
+					$form_screen = new CHIEF_SFC_Edit_Form( $form->id(), 'cf7' );
+					$forms[$form_screen->form->name] = $form_screen;
 				}
 			}
 		}
@@ -132,11 +134,16 @@ class CHIEF_SFC_List_Table extends WP_List_Table {
 			$gravity_forms = GFFormsModel::get_forms();
 			if ( $gravity_forms ) {
 				foreach( $gravity_forms as $form ) {
-					$forms[] = new CHIEF_SFC_Edit_Form( $form->id, 'grv' );
+					$form_screen = new CHIEF_SFC_Edit_Form( $form->id, 'grv' );
+					$forms[$form_screen->form->name] = $form_screen;
 				}
 			}
 		}
 
+		// alphabetize
+		uksort( $forms, 'strcasecmp' );
+
+		$forms = array_values( $forms );
 		return $forms;
 	}
 
