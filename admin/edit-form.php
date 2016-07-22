@@ -121,10 +121,18 @@ class CHIEF_SFC_Edit_Form {
 		if ( !$nonce || !wp_verify_nonce( $nonce, 'chief-sfc-disable' ) )
 			$this->fail_update( 'disable' );
 
+		// back up for one hour
+		$option = get_option( 'chief_sfc_captures', array() );
+		$key    = $this->form->get_unique_key();
+		set_transient( "chief_sfc_disabled_{$key}", $this->form->values, 60 * 60 );
+
 		$this->form->disable();
 
 		// redirect to success/failure
-		$url = esc_url_raw( add_query_arg( 'disabled', 'true', $this->list_url ) );
+		$url = esc_url_raw( add_query_arg( array(
+			'disabled' => 'true',
+			'key'      => $key
+		), $this->list_url ) );
 		wp_redirect( $url );
 		exit;
 
