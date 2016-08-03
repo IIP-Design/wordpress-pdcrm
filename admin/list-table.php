@@ -35,7 +35,7 @@ class CHIEF_SFC_List_Table extends WP_List_Table {
 	/**
 	 * No bulk actions needed, so don't return default markup.
 	 */
-	protected function display_tablenav( $which ) {
+	public function display_tablenav( $which ) {
 		return '';
 	}
 
