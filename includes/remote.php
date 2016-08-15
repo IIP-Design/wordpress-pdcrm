@@ -82,9 +82,14 @@ class CHIEF_SFC_Remote {
 		$keys = get_option( CHIEF_SFC_Authorization::$client_setting, array() );
 		$auth = get_option( CHIEF_SFC_Authorization::$tokens_setting, array() );
 
-		$success = true;
+		$keys = wp_parse_args( $keys, array(
+			'client_id'     => '',
+			'client_secret' => '',
+			'client_url'    => 'https://login.salesforce.com'
+		) );
 
-		$url  = 'https://login.salesforce.com/services/oauth2/token';
+		$url = $keys['client_url'] . '/services/oauth2/token';
+
 		$args = array(
 			'body' => array(
 				'client_id'     => $keys['client_id'],
@@ -118,8 +123,8 @@ class CHIEF_SFC_Remote {
 	 * just a redirect to Salesforce where the user is asked to authorize
 	 * the app.
 	 */
-	static public function authorize( $client_id ) {
-		$url = 'https://login.salesforce.com/services/oauth2/authorize';
+	static public function authorize( $client_id = '', $url = '' ) {
+		$url = $url . '/services/oauth2/authorize';
 		$url = esc_url_raw( add_query_arg( array(
 			'response_type' => 'code',
 			'client_id'     => $client_id,
@@ -139,8 +144,13 @@ class CHIEF_SFC_Remote {
 			'refresh_token' => ''
 		) );
 
-		$url = 'https://login.salesforce.com/services/oauth2/revoke?token=' . $settings['refresh_token'];
-		$data = wp_remote_get( $url );
+		$keys = get_option( CHIEF_SFC_Authorization::$client_setting, array() );
+		$keys = wp_parse_args( $keys, array(
+			'client_url' => 'https://login.salesforce.com'
+		) );
+
+		$url = $keys['client_url'] . '/services/oauth2/revoke?token=' . $settings['refresh_token'];
+		$data = wp_remote_get( esc_url_raw( $url ) );
 
 		// even if the response fails, at least delete all the auth data
 		delete_option( CHIEF_SFC_Authorization::$tokens_setting );

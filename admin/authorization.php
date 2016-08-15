@@ -99,6 +99,15 @@ class CHIEF_SFC_Authorization {
 				)
 			),
 			array(
+				'title' => 'URL',
+				'type'  => 'text',
+				'args'  => array(
+					'name'    => 'client_url',
+					'id'      => 'chief-sfc-client-url',
+					'default' => 'https://login.salesforce.com'
+				)
+			),
+			array(
 				'title' => 'Status',
 				'type'  => 'status',
 				'args'  => array(
@@ -141,7 +150,18 @@ class CHIEF_SFC_Authorization {
 	 * Output the HTML for a text field.
 	 */
 	static public function view_field_text( $args ) {
+
+		$args = wp_parse_args( $args, array(
+			'name'    => '',
+			'id'      => '',
+			'default' => ''
+		) );
+
 		$value = isset( self::$values[$args['name']] ) ? self::$values[$args['name']] : '';
+
+		if ( !$value && $args['default'] )
+			$value = $args['default'];
+
 		include( CHIEF_SFC_PATH . 'admin/partials/settings-text-field.php' );
 	}
 
@@ -188,9 +208,13 @@ class CHIEF_SFC_Authorization {
 		// sanitize
 		$client_id     = isset( $values['client_id'] )     ? sanitize_text_field( $values['client_id'] )     : '';
 		$client_secret = isset( $values['client_secret'] ) ? sanitize_text_field( $values['client_secret'] ) : '';
+		$client_url    = isset( $values['client_url'] )    ? esc_url_raw( $values['client_url'] )            : '';
+
+		// remove possible url trailing slash
+		$client_url = rtrim( $client_url, '/' );
 
 		/**
-		 * If either field is empty, hijack and redirect.
+		 * If either the id/secret is empty, hijack and redirect.
 		 */
 		if ( !$client_id || !$client_secret ) {
 			$url = 'admin.php?page=chief-sfc-settings';
@@ -202,7 +226,8 @@ class CHIEF_SFC_Authorization {
 		// send along
 		$sanitized = array(
 			'client_id'     => $client_id,
-			'client_secret' => $client_secret
+			'client_secret' => $client_secret,
+			'client_url'    => $client_url
 		);
 		return $sanitized;
 
@@ -244,7 +269,12 @@ class CHIEF_SFC_Authorization {
 				exit;
 			}
 
-			CHIEF_SFC_Remote::authorize( $values['client_id'] );
+			$values = wp_parse_args( $values, array(
+				'client_id'  => '',
+				'client_url' => ''
+			) );
+
+			CHIEF_SFC_Remote::authorize( $values['client_id'], $values['client_url'] );
 
 		// already authorized
 		} else {
@@ -276,10 +306,11 @@ class CHIEF_SFC_Authorization {
 		$values = get_option( self::$client_setting, array() );
 		$values = wp_parse_args( $values, array(
 			'client_id'     => '',
-			'client_secret' => ''
+			'client_secret' => '',
+			'client_url'    => 'https://login.salesforce.com'
 		) );
 
-		$url = 'https://login.salesforce.com/services/oauth2/token';
+		$url = $values['client_url'] . '/services/oauth2/token';
 		$post = array(
 			'body' => array(
 				'grant_type'    => 'authorization_code',
