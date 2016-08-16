@@ -1,0 +1,15 @@
+{
+    "name": "usstatedept/wordpress-pdcrm",
+    "type": "wordpress-plugin",
+    "description" : "Save WordPress form submissions to Salesforce. Compatible with Formidable Forms, Gravity Forms, and Contact Form 7.",
+    "authors": [
+        {
+            "name": "Office of Design, U.S. Department of State",
+            "email": "design@america.gov"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+       "composer/installers": "~1.0"
+    }
+}
