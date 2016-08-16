@@ -170,7 +170,7 @@ class CHIEF_SFC_Remote {
 			return new WP_Error( 'missing_client_keys', 'The Consumer Key and Consumer Secret are required.' );
 
 		// send a basic request
-		return CHIEF_SFC_Remote::request( '', array(), 'GET', $attempt_refresh );
+		return self::request( '', array(), 'GET', $attempt_refresh );
 
 	}
 
