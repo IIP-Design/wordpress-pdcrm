@@ -38,19 +38,19 @@
 
 		<p>Before using this plugin, you must authorize this website with Salesforce:</p>
 		<ol>
-			<li>Log into Salesforce and create a new Connected App. (Setup > Create > Apps > Connected Apps)</li>
+			<li>Log into Salesforce > Setup > Apps and create a new Connected App.</li>
 			<li>Enter an App Name and Contact Email.</li>
 			<li>
 				Under API (Enable OAuth Settings):
 				<p>
 					<ol>
 						<li>Select "Enable Oauth Settings".</li>
-						<li>Enter this site's URL. This should exactly match the <a href="<?php echo esc_url( admin_url( 'options-general.php' ) ); ?>">Site Address field in Settings > General</a> and must use HTTPS.</li>
-						<li>Under "Selected Oauth Scopes", add "Full access" and "Perform requests on your behalf at any time".</li>
+						<li>Enter this site's URL, which should match your <a href="<?php echo esc_url( admin_url( 'options-general.php' ) ); ?>">Site Address</a>. HTTPS is required.</li>
+						<li>Under "Selected Oauth Scopes": add "Full access" and "Perform requests on your behalf at any time".</li>
 					</ol>
 				</p>
 			</li>
-			<li>Save the Connected App. The app will be assigned a Consumer Key and Consumer Secret. Add those here.</li>
+			<li>Save the Connected App. It will be assigned a Consumer Key and Consumer Secret. Enter those below.</li>
 		</ol>
 
 		<form action="options.php" method="post">
