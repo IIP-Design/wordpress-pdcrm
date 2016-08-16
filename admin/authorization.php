@@ -99,7 +99,7 @@ class CHIEF_SFC_Authorization {
 				)
 			),
 			array(
-				'title' => 'URL',
+				'title' => 'Login URL',
 				'type'  => 'text',
 				'args'  => array(
 					'name'    => 'client_url',
