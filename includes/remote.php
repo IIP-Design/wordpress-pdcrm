@@ -33,7 +33,7 @@ class CHIEF_SFC_Remote {
 
 		$request = array(
 			'method'    => $method,
-			'body'      => json_encode( $params ),
+			'body'      => $params ? json_encode( $params ) : false,
 			'headers'   => $headers,
 			'sslverify' => true
 		);
