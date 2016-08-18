@@ -92,7 +92,11 @@ class CHIEF_SFC_Edit_Form {
 		if ( !$nonce || !wp_verify_nonce( $nonce, 'chief-sfc-objcache' ) )
 			$this->fail_update( 'objcache' );
 
-		$this->form->clear_object_cache();
+		// get object
+		$object = isset( $_GET['chief_sfc_object'] ) ? sanitize_key( $_GET['chief_sfc_object'] ) : $this->form->values['object'];
+
+		// clear
+		$this->form->clear_object_cache( $object );
 
 		// redirect
 		$url = esc_url_raw( add_query_arg( 'message', 'objcache', $this->url ) );
@@ -104,9 +108,10 @@ class CHIEF_SFC_Edit_Form {
 	/**
 	 * Generate a Clear Cache url.
 	 */
-	public function get_clear_cache_url() {
+	public function get_clear_cache_url( $object ) {
 		return esc_url_raw( add_query_arg( array(
-			'chief_sfc_action'   => 'objcache',
+			'chief_sfc_action'    => 'objcache',
+			'chief_sfc_object'    => sanitize_key( $object ),
 			'_chief_sfc_objcache' => wp_create_nonce( 'chief-sfc-objcache' )
 		), $this->url ) );
 	}

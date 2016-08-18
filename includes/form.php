@@ -282,9 +282,9 @@ class CHIEF_SFC_Form {
 	/**
 	 * Delete the cache of the current object's fields.
 	 */
-	public function clear_object_cache() {
-		if ( isset( $this->values['object'] ) )
-			delete_option( 'chief_sfc_object_fields_' . $this->values['object'] );
+	public function clear_object_cache( $object ) {
+		$object = sanitize_key( $object );
+		delete_option( 'chief_sfc_object_fields_' . $object );
 	}
 
 	/**

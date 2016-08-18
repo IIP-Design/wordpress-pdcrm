@@ -6,7 +6,7 @@
 
 <tr>
 	<th></th>
-	<td><a class="button-secondary" href="<?php echo $this->get_clear_cache_url(); ?>">Clear cache</a></td>
+	<td><a class="button-secondary" href="<?php echo $this->get_clear_cache_url( $object ); ?>">Clear cache</a></td>
 </tr>
 
 <?php $sf_fields = $this->form->get_object_fields( $object );
