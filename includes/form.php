@@ -262,10 +262,10 @@ class CHIEF_SFC_Form {
 
 		$fields = array();
 		foreach ( $response->fields as $fieldobj ) {
-			if( $fieldobj->updateable && $fieldobj->createable && !$fieldobj->defaultedOnCreate ) {
+			if( $fieldobj->updateable && $fieldobj->createable ) {
 
 				$required = false;
-				if ( !$fieldobj->nillable )
+				if ( !$fieldobj->defaultedOnCreate && !$fieldobj->nillable )
 					$required = true;
 
 				$fields[$fieldobj->name] = array(
