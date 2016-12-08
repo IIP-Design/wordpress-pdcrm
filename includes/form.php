@@ -91,8 +91,8 @@ class CHIEF_SFC_Form {
 	private function normalize_cf7_form( $form ) {
 		$fields = array();
 
-		if ( is_callable( array( 'WPCF7_ShortcodeManager', 'get_instance' ) ) ) {
-			$manager = WPCF7_ShortcodeManager::get_instance();
+		if ( is_callable( array( 'WPCF7_FormTagsManager', 'get_instance' ) ) ) {
+			$manager = WPCF7_FormTagsManager::get_instance();
 			$scanned_fields = $manager->scan_shortcode( $form->prop( 'form' ) );
 			foreach( $scanned_fields as $field ) {
 				$field = wp_parse_args( $field, array(
