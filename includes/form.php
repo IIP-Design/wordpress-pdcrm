@@ -94,20 +94,12 @@ class CHIEF_SFC_Form {
 		if ( is_callable( array( 'WPCF7_FormTagsManager', 'get_instance' ) ) ) {
 			$manager = WPCF7_FormTagsManager::get_instance();
 			$scanned_fields = $manager->scan_form_tags( $form->prop( 'form' ) );
-			foreach( $scanned_fields as $field ) {
-				$field = wp_parse_args( $field, array(
-					'name' => '',
-					'type' => ''
-				) );
-				if ( $field['type'] !== 'submit' )
-					$fields[] = array(
-						'name'  => $field['name'],
-						'label' => $field['name']
-					);
-			}
 		} elseif ( is_callable( array( 'WPCF7_ShortcodeManager', 'get_instance' ) ) ) {
 			$manager = WPCF7_ShortcodeManager::get_instance();
 			$scanned_fields = $manager->scan_shortcode( $form->prop( 'form' ) );
+		}
+
+		if ( isset( $scanned_fields ) ) {
 			foreach( $scanned_fields as $field ) {
 				$field = wp_parse_args( $field, array(
 					'name' => '',
