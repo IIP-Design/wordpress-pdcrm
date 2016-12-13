@@ -93,7 +93,7 @@ class CHIEF_SFC_Form {
 
 		if ( is_callable( array( 'WPCF7_FormTagsManager', 'get_instance' ) ) ) {
 			$manager = WPCF7_FormTagsManager::get_instance();
-			$scanned_fields = $manager->scan_form_tags( $form->prop( 'form' ) );
+			$scanned_fields = $manager->scan( $form->prop( 'form' ) );
 		} elseif ( is_callable( array( 'WPCF7_ShortcodeManager', 'get_instance' ) ) ) {
 			$manager = WPCF7_ShortcodeManager::get_instance();
 			$scanned_fields = $manager->scan_shortcode( $form->prop( 'form' ) );
