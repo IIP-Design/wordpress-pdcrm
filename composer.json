@@ -1,5 +1,5 @@
 {
-    "name": "usstatedept/wordpress-pdcrm",
+    "name": "iip-design/wordpress-pdcrm",
     "type": "wordpress-plugin",
     "description" : "Save WordPress form submissions to Salesforce. Compatible with Formidable Forms, Gravity Forms, and Contact Form 7.",
     "authors": [
