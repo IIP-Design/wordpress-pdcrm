@@ -35,7 +35,8 @@ class CHIEF_SFC_Remote {
 			'method'    => $method,
 			'body'      => $params ? json_encode( $params ) : false,
 			'headers'   => $headers,
-			'sslverify' => true
+			'sslverify' => true,
+			'timeout' => 5
 		);
 
 		$response = wp_remote_request( $url, $request );

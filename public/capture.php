@@ -102,6 +102,10 @@ class CHIEF_SFC_Capture {
 
 		$result = CHIEF_SFC_Remote::post( "sobjects/{$object}", $data );
 
+		// if ( !empty( $result ) ) {
+		// 	file_put_contents( 'php://stderr', print_r( json_encode( $result ) . PHP_EOL, TRUE) );
+		// }
+
 		// debug:
 		// echo '<pre>';
 		// print_r( $data );
