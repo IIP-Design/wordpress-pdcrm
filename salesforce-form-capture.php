@@ -2,14 +2,13 @@
 /*
 Plugin Name: Salesforce Form Capture
 Description: Save WordPress form submissions to Salesforce. Compatible with Formidable Forms, Gravity Forms, and Contact Form 7.
-Version:     1.0
+Version:     2.0
 Author:      CHIEF
 Author URI:  http://www.agencychief.com
 */
 
 define( 'CHIEF_SFC_PATH', plugin_dir_path( __FILE__ ) );
 define( 'CHIEF_SFC_URL', plugin_dir_url( __FILE__ ) );
-define( 'CHIEF_SFC_VERSION', '1.0' );
 
 require_once( CHIEF_SFC_PATH . 'includes/form.php' );
 require_once( CHIEF_SFC_PATH . 'includes/remote.php' );
@@ -21,6 +20,9 @@ require_once( CHIEF_SFC_PATH . 'admin/list-table.php' );
 require_once( CHIEF_SFC_PATH . 'admin/edit-form.php' );
 
 require_once( CHIEF_SFC_PATH . 'admin/authorization.php' );
+
+// introduce the error log portions
+require_once( CHIEF_SFC_PATH . 'admin/log.php' );
 
 function chief_sfc_boot() {
 
@@ -34,6 +36,81 @@ function chief_sfc_boot() {
 	// add authorization settings
 	CHIEF_SFC_Authorization::init();
 
+}
+
+add_action( 'plugins_loaded', 'chief_sfc_boot' );
+
+// begin adding db for log functionality
+
+function form_capture_activate() {
+
+	global $wpdb;
+
+    $table_name = $wpdb->prefix . 'form_capture_data';
+
+    $charset_collate = $wpdb->get_charset_collate();
+
+    $sql = "CREATE TABLE IF NOT EXISTS $table_name (
+            fc_id INT NOT NULL AUTO_INCREMENT, -- every table needs one
+            fc_form_id INT DEFAULT NULL, -- which form is used by ID
+            fc_submission_id INT, -- unique submission ID (all submission are unique)
+            fc_request_data LONGTEXT DEFAULT NULL, -- form content
+            fc_response LONGTEXT DEFAULT NULL, -- response status code
+            fc_submission_date DATETIME DEFAULT CURRENT_TIMESTAMP, -- submission date
+            fc_failure TINYINT(1), -- did it work or nah?
+            PRIMARY KEY  (fc_id),
+            KEY fc_id (fc_id)
+    ) $charset_collate;";
+
+    require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+	$result = dbDelta( $sql );
+
+	// error handling
+	// die ('<pre>' . print_r($result,1) );
 
 }
-add_action( 'plugins_loaded', 'chief_sfc_boot' );
+
+// adding in demo data for log db (use for testing)
+
+// function log_demo_data() {
+// 	global $wpdb;
+// 	$table_name = $wpdb->prefix . 'form_capture_data';
+	
+// 	$fc_form_id = '';
+// 	$fc_submission_id = '';
+// 	$fc_request_data = 'Hi I am stuff in the form content';
+// 	$fc_response = 'Response Status Code';
+// 	$fc_failure = '1';
+	
+// 	$wpdb->insert( 
+// 		$table_name, 
+// 		array( 
+// 			'fc_form_id' => $fc_form_id,
+// 			'fc_submission_id' => $fc_submission_id,
+// 			'fc_request_data' => $fc_request_data, 
+// 			'fc_response' => $fc_response, 
+// 			'fc_failure' => $fc_failure
+// 		) 
+// 	);
+// }
+
+// drop table when unistalling plugin
+register_uninstall_hook( __FILE__, 'form_capture_uninstall' );
+
+// adding table when activating plugin
+register_activation_hook( __FILE__, 'form_capture_activate' );
+
+// add in demo data (use for testing)
+// register_activation_hook( __FILE__, 'log_demo_data' );
+
+// drop table when deactivating (use for testing, comment out for prod)
+// register_deactivation_hook( __FILE__, 'form_capture_uninstall' );
+
+// And here goes the uninstallation function:
+function form_capture_uninstall(){
+	global $wpdb;
+    $table_name = $wpdb->prefix . 'form_capture_data';
+    $sql = "DROP TABLE IF EXISTS $table_name";
+    $wpdb->query($sql);
+}
+

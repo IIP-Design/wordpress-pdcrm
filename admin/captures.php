@@ -43,7 +43,8 @@ class CHIEF_SFC_Captures {
 
 		// check authorization
 		$response = CHIEF_SFC_Remote::test();
-		if ( is_wp_error( $response ) || !is_object( $response ) )
+
+		if ( $response['wp_error'] || !is_object( $response['body'] ) )
 			$this->authorized = false;
 		else
 			$this->authorized = true;

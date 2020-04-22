@@ -36,7 +36,7 @@ class CHIEF_SFC_Edit_Form {
 	 */
 	public function enqueue() {
 		// enqueue in footer
-		wp_enqueue_script( 'chief-sfc-scripts', CHIEF_SFC_URL . 'admin/js/scripts.min.js', array(), CHIEF_SFC_VERSION, false );
+		wp_enqueue_script( 'chief-sfc-scripts', CHIEF_SFC_URL . 'admin/js/scripts.min.js', array(), 1, false );
 	}
 
 	/**

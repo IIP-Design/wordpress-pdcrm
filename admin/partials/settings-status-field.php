@@ -4,7 +4,7 @@
  *
  * Available vars: $status.
  */
-if ( is_wp_error( $status ) || !is_object( $status ) ) { ?>
+if ( $status['wp_error'] || !is_object( $status['body'] ) ) { ?>
 
 	<p class="unauthorized">Not authorized.</p>
 

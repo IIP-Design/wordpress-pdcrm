@@ -250,18 +250,26 @@ class CHIEF_SFC_Form {
 	 * Use the Salesforce API to grab all the fields associated with the given object.
 	 */
 	public function get_remote_object_fields( $object = '' ) {
+		global $wpdb;
 		if ( !in_array( $object, $this->get_objects() ) )
 			return array();
 
 		$object = sanitize_text_field( $object );
 
-		$response = CHIEF_SFC_Remote::get( 'sobjects/' . $object . '/describe' );
+		$result = CHIEF_SFC_Remote::get( 'sobjects/' . $object . '/describe' );
 
-		if ( is_wp_error( $response ) )
-			return array();
+		$response = $result['body'];
 
-		if ( !is_object( $response ) )
+		$record = [
+			'fc_request_data' => wp_json_encode($result['request']),
+			'fc_response' => wp_json_encode($result['response']),
+			'fc_failure' => 1
+		];
+
+		if ( $result['wp_error'] || !is_object( $response ) ) {
+			$wpdb->insert( "{$wpdb->prefix}form_capture_data", $record );
 			return array();
+		}
 
 		if ( !isset( $response->fields ) )
 			return array();
@@ -281,7 +289,6 @@ class CHIEF_SFC_Form {
 
 			}
 		}
-
 		return $fields;
 	}
 
