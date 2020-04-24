@@ -24,7 +24,7 @@ class CHIEF_SFC_Capture {
 		$item_meta = isset( $_POST['item_meta'] ) ? (array) $_POST['item_meta'] : array();
 		$values = array_map( 'sanitize_text_field', $item_meta );
 
-		self::send_to_salesforce( $form, $values );
+		self::send_to_salesforce( $form, $values, $entry_id );
 	}
 
 	/**
@@ -60,8 +60,9 @@ class CHIEF_SFC_Capture {
 	 *
 	 * @param  object $form  A CHIEF_SFC_Form object.
 	 * @param  array $values A flat associative array of pre-sanitized form submission values.
+	 * @param  int $entry_id Submission ID if available for the calling form plugin.
 	 */
-	static public function send_to_salesforce( $form, $values = array() ) {
+	static public function send_to_salesforce( $form, $values = array(), $entry_id = null ) {
 
 		if ( !$form->is_enabled() )
 			return;
@@ -100,19 +101,28 @@ class CHIEF_SFC_Capture {
 
 		}
 
-		$result = CHIEF_SFC_Remote::post( "sobjects/{$object}", $data );
+		$record = [
+			'fc_form_id' => $form->form_id,
+			'fc_submission_id' => $entry_id,
+			'fc_request_data' => '',
+			'fc_response' => '',
+			'fc_failure' => 1
+		];
+		try {
+			$result = CHIEF_SFC_Remote::post( "sobjects/{$object}", $data );
+			$record['fc_request_data'] = wp_json_encode($result['request']);
+			$record['fc_response'] = wp_json_encode($result['response']);
 
-		// if ( !empty( $result ) ) {
-		// 	file_put_contents( 'php://stderr', print_r( json_encode( $result ) . PHP_EOL, TRUE) );
-		// }
+			if ( $result['body'] && $result['body']->success ) {
+				$record['fc_failure'] = 0;
+			}
+		} catch ( Exception $e ) {
+			$record['fc_response'] = $e->getMessage();
+			$record['fc_failure'] = 1;
+		}
 
-		// debug:
-		// echo '<pre>';
-		// print_r( $data );
-		// print_r( $result );
-		// echo '</pre>';
-		// exit;
-
+		global $wpdb;
+		$result = $wpdb->insert( "{$wpdb->prefix}form_capture_data", $record );
 	}
 
 }

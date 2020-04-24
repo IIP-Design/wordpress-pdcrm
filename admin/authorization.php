@@ -58,6 +58,15 @@ class CHIEF_SFC_Authorization {
 			self::$slug,
 			array( __CLASS__, 'view_page' )
 		);
+		add_submenu_page(
+			'chief-sfc-captures',
+			'Salesforce Form Captures Log',
+			'Log',
+			'manage_options',
+			__FILE__,
+			'salesforce_form_capture_log',
+			array( __FILE__, 'view_page' )
+		);
 	}
 
 	/**
@@ -259,11 +268,11 @@ class CHIEF_SFC_Authorization {
 		$response = CHIEF_SFC_Remote::test( $attempt_refresh = false );
 
 		// not authorized
-		if ( is_wp_error( $response ) || !is_object( $response ) ) {
+		if ( $response['wp_error'] || !is_object( $response['body'] ) ) {
 
 			// is either field empty? if so, get out early
-			if ( is_wp_error( $response ) ) {
-				if ( $response->get_error_code() === 'missing_client_keys' ) {
+			if ( $response['wp_error'] ) {
+				if ( $response['response']->get_error_code() === 'missing_client_keys' ) {
 					$url = 'admin.php?page=chief-sfc-settings';
 					$url = esc_url_raw( add_query_arg( 'missing-required', 'true', $url ) );
 					wp_redirect( $url );

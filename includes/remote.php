@@ -41,23 +41,33 @@ class CHIEF_SFC_Remote {
 
 		$response = wp_remote_request( $url, $request );
 
-		if ( is_wp_error( $response ) )
-			return $response;
+		$return = [
+			'request' => $request,
+			'response' => $response,
+			'body' => null,
+			'code' => null,
+			'wp_error' => is_wp_error( $response )
+		];
+
+		if ( $return['wp_error'] )
+			return $return;
 
 		$body = json_decode( wp_remote_retrieve_body( $response ) );
-
 		$code = isset( $response['response']['code'] ) ? (int) $response['response']['code'] : 400;
+
+		$return['body'] = $body;
+		$return['code'] = $code;
 
 		if ( ( $code < 200 || $code > 299 ) && $attempt_refresh ) {
 			$error = isset( $body[0]->errorCode ) ? sanitize_text_field( $body[0]->errorCode ) : '';
 			if ( $error === 'INVALID_SESSION_ID' ) {
 				self::refresh_token();
 				// now try again (but don't keep trying)
-				$body = self::request( $uri, $params, $method, false );
+				$return = self::request( $uri, $params, $method, false );
 			}
 		}
 
-		return $body;
+		return $return;
 
 	}
 
