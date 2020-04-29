@@ -77,9 +77,11 @@ function form_capture_activate() {
 // 	$table_name = $wpdb->prefix . 'form_capture_data';
 	
 // 	$fc_form_id = '';
-// 	$fc_submission_id = '';
-// 	$fc_request_data = 'Hi I am stuff in the form content';
-// 	$fc_response = 'Response Status Code';
+//     $fc_submission_id = '';
+//     // below mocks the actual form output in an array
+//     $fc_request_data = '{"method":"POST","body":"{\"LastName\":\"Testererer\",\"FirstName\":\"Tester\",\"Company\":\"(no information submitted)\",\"Country\":\"Zambia\",\"Email\":\"testit@teststuff.com\",\"LeadSource\":\"YALI\",\"Youth_Network_Add_Me__c\":\"Yes\"}","headers":{"content-type":"application\/json","Authorization":"Bearer 00D30000000mqyv!AQMAQCcomNX73OkdKJ.ty_bW6BuElkVpmjotVwhL4aXYE.WMCO.LVz2cnbAcoshF0stkWVhCfBrT1gUcNUBnEnY9Zxn3jF95"},"sslverify":true,"timeout":5}';
+//     // below mocks the actual form output in an array
+// 	$fc_response = '{"headers":{},"body":"{\"id\":\"00Qt0000006ndlsEAA\",\"success\":true,\"errors\":[]}","response":{"code":201,"message":"Created"},"cookies":[{"name":"BrowserId","value":"unAI-YikEeqtEJdJXH6nTw","expires":1619541167,"path":"\/","domain":"salesforce.com","host_only":false}],"filename":null,"http_response":{"data":null,"headers":null,"status":null}}';
 // 	$fc_failure = '1';
 	
 // 	$wpdb->insert( 
