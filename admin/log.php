@@ -34,8 +34,9 @@ function fc_json_decode( $json, $arr = false ) {
                 }
             }
         }
+        return $result;
     }
-    return $result;
+    return $json;
 }
 
 // begin markup to display on log page
