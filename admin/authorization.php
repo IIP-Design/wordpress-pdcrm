@@ -63,9 +63,8 @@ class CHIEF_SFC_Authorization {
 			'Salesforce Form Captures Log',
 			'Log',
 			'manage_options',
-			__FILE__,
-			'salesforce_form_capture_log',
-			array( __FILE__, 'view_page' )
+			'chief-sfc-log',
+			'salesforce_form_capture_log'
 		);
 	}
 
