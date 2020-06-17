@@ -23,6 +23,7 @@ require_once( CHIEF_SFC_PATH . 'admin/authorization.php' );
 
 // introduce the error log portions
 require_once( CHIEF_SFC_PATH . 'admin/log.php' );
+require_once( CHIEF_SFC_PATH . 'admin/error-email.php' );
 require_once( CHIEF_SFC_PATH . 'includes/export.php' );
 CHIEF_SFC_Export::init();
 
@@ -37,6 +38,8 @@ function chief_sfc_boot() {
 
 	// add authorization settings
 	CHIEF_SFC_Authorization::init();
+
+	new CHIEF_SFC_Error_Email();
 
 }
 

@@ -108,19 +108,37 @@ class CHIEF_SFC_Capture {
 			'fc_response' => '',
 			'fc_failure' => 1
 		];
+		$error_data = null;
 		try {
 			$result = CHIEF_SFC_Remote::post( "sobjects/{$object}", $data );
 			$record['fc_request_data'] = wp_json_encode($result['request']);
 			$record['fc_response'] = wp_json_encode($result['response']);
-
+			$error_data = $result['response'];
 			if ( $result['body'] && $result['body']->success ) {
 				$record['fc_failure'] = 0;
 			}
 		} catch ( Exception $e ) {
 			$record['fc_response'] = $e->getMessage();
 			$record['fc_failure'] = 1;
+			$error_data = $e->getMessage();
 		}
+		$error_email = get_option( CHIEF_SFC_Error_Email::$option, false );
+		if ( $record['fc_failure'] && $error_email ) {
+			function wpdocs_set_html_mail_content_type() {
+				return 'text/html';
+			}
+			add_filter( 'wp_mail_content_type', 'wpdocs_set_html_mail_content_type' );
+			$subject = 'SF Form Capture Error';
+			$body = "An error occurred when attempting to send the following data: <br><br>";
+			$body .= "<pre>" . print_r($data,1) . "</pre>";
+			$body .= "<br><br>With the following response:<br><br>";
+			$body .= "<pre>" . print_r($error_data, 1) . "</pre>";
 
+			wp_mail( $error_email, $subject, $body );
+
+			// Reset content-type to avoid conflicts -- https://core.trac.wordpress.org/ticket/23578
+			remove_filter( 'wp_mail_content_type', 'wpdocs_set_html_mail_content_type' );
+		}
 		global $wpdb;
 		$result = $wpdb->insert( "{$wpdb->prefix}form_capture_data", $record );
 	}
