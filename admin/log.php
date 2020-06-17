@@ -71,7 +71,7 @@ function salesforce_form_capture_log() {
             }
             $total_query       = "SELECT COUNT(1) FROM (${query}) AS combined_table";
             $total             = $wpdb->get_var( $total_query );
-            $items_per_page    = 1;
+            $items_per_page    = 30;
             $page              = isset( $_GET['p'] ) ? abs( (int) $_GET['p'] ) : 1;
             $offset            = ( $page * $items_per_page ) - $items_per_page;
             $failure_result    = $wpdb->get_results( $query . " ORDER BY fc_submission_date DESC LIMIT ${offset}, ${items_per_page}" );
