@@ -23,6 +23,7 @@ require_once( CHIEF_SFC_PATH . 'admin/authorization.php' );
 
 // introduce the error log portions
 require_once( CHIEF_SFC_PATH . 'admin/log.php' );
+require_once( CHIEF_SFC_PATH . 'admin/error-email.php' );
 require_once( CHIEF_SFC_PATH . 'includes/export.php' );
 CHIEF_SFC_Export::init();
 
@@ -37,6 +38,8 @@ function chief_sfc_boot() {
 
 	// add authorization settings
 	CHIEF_SFC_Authorization::init();
+
+	new CHIEF_SFC_Error_Email();
 
 }
 
@@ -105,7 +108,7 @@ register_uninstall_hook( __FILE__, 'form_capture_uninstall' );
 register_activation_hook( __FILE__, 'form_capture_activate' );
 
 // add in demo data (use for testing)
-//register_activation_hook( __FILE__, 'log_demo_data' );
+register_activation_hook( __FILE__, 'log_demo_data' );
 
 // drop table when deactivating (use for testing, comment out for prod)
 // register_deactivation_hook( __FILE__, 'form_capture_uninstall' );
