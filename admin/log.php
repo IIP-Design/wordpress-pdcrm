@@ -2,7 +2,6 @@
 /**
  * The log page for the form capture plugin
  */
-
 // enqueue the stylesheet for this page
 function add_stylesheet() {
     wp_enqueue_style( 'capture-log-styles', plugins_url( 'css/style.css', __FILE__ ) );
@@ -155,4 +154,4 @@ function salesforce_form_capture_log() {
 
     </div> <!-- end #capture-log -->
 
-<?php } ?> <!-- end salesforce_form_capture_log()  -->
+<?php } /* end salesforce_form_capture_log()  */?>
