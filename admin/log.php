@@ -27,7 +27,7 @@ function fc_json_decode( $json, $arr = false ) {
 
 function salesforce_form_capture_log() {
     $show_all = (array_key_exists( 'show_all', $_GET ) && $_GET['show_all']) ? 1 : 0;
-	$month = isset($_GET['month']) ? $_GET['month'] : 1;
+	$month = isset($_GET['month']) ? intval($_GET['month']) : '';
 ?>
 
 <!-- begin markup for log page -->
@@ -75,7 +75,7 @@ function salesforce_form_capture_log() {
             //     $kw = sanitize_text_field($_GET['keyword']);
             //     $query .= " AND (fc_request_data LIKE '%$kw%' OR fc_response LIKE '%$kw%' OR fc_submission_date LIKE '%$kw%')";
             // }
-            if (isset($_GET['month'])) {
+            if (isset($_GET['month']) && $_GET['month']) {
                 $month = sanitize_text_field($_GET['month']);
                 $query .= " AND(fc_submission_date >= DATE_SUB(NOW(), INTERVAL $month MONTH))";
             }
