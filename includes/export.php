@@ -28,9 +28,11 @@ class CHIEF_SFC_Export {
 		if ( !current_user_can( 'manage_options' ) ) {
 			wp_die( 'Unauthorized' );
 		}
-		$show_all = array_key_exists( 'show_all', $_GET ) && $_GET['show_all'];
+		$show_all = (array_key_exists( 'show_all', $_GET ) && $_GET['show_all']) ? 1 : 0;
 
-		$query = "SELECT * FROM {$wpdb->prefix}form_capture_data " . ($show_all ? '' : ' WHERE fc_failure = 1');
+		// $query = "SELECT * FROM {$wpdb->prefix}form_capture_data " . ($show_all ? '' : ' WHERE fc_failure = 1');
+		$query = "SELECT * FROM {$wpdb->prefix}form_capture_data WHERE fc_submission_date >= DATE_SUB(NOW(), INTERVAL " . $_GET['month'] . " MONTH) " . (!$show_all ? ' AND fc_failure = 1' : '' );
+
 		$results = $wpdb->get_results( $query );
 
 		$output_filename = 'Form_Capture_Errors.csv';
