@@ -111,7 +111,18 @@ class CHIEF_SFC_Capture {
 		$error_data = null;
 		try {
 			$result = CHIEF_SFC_Remote::post( "sobjects/{$object}", $data );
-			$record['fc_request_data'] = wp_json_encode($result['request']);
+//			$record['fc_request_data'] = wp_json_encode($result['request']);
+			$sanitized_form_values = [];
+			$form_fields = FrmField::get_all_for_form( 8 );
+			foreach ( $form_fields as $field ) {
+				if ( stristr( $field->name,'email' )
+				     || stristr( $field->name, 'country')
+				     || preg_match( '/network[_\s]?campaign/i', $field->name )
+			     ) {
+					$sanitized_form_values[$field->name] = array_key_exists( $field->id, $values ) ? $values[$field->id] : null;
+				}
+			}
+			$record['fc_request_data'] = wp_json_encode($sanitized_form_values);
 			$record['fc_response'] = wp_json_encode($result['response']);
 			$error_data = $result['response'];
 			if ( $result['body'] && $result['body']->success ) {

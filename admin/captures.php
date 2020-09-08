@@ -42,15 +42,15 @@ class CHIEF_SFC_Captures {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ) );
 
 		// check authorization
-//		$response = CHIEF_SFC_Remote::test();
+		$response = CHIEF_SFC_Remote::test();
 
-//		if ( $response['wp_error'] || !is_object( $response['body'] ) )
-//			$this->authorized = false;
-//		else
-//			$this->authorized = true;
-//
-//		if ( !$this->authorized )
-//			return;
+		if ( $response['wp_error'] || !is_object( $response['body'] ) )
+			$this->authorized = false;
+		else
+			$this->authorized = true;
+
+		if ( !$this->authorized )
+			return;
 
 		// check for actions
 		$action = isset( $_REQUEST['chief_sfc_action'] ) ? sanitize_key( $_REQUEST['chief_sfc_action'] ) : false;
