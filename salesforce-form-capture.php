@@ -110,7 +110,7 @@ register_uninstall_hook( __FILE__, 'form_capture_uninstall' );
 register_activation_hook( __FILE__, 'form_capture_activate' );
 
 // add in demo data (use for testing)
-register_activation_hook( __FILE__, 'log_demo_data' );
+// register_activation_hook( __FILE__, 'log_demo_data' );
 
 // drop table when deactivating (use for testing, comment out for prod)
 // register_deactivation_hook( __FILE__, 'form_capture_uninstall' );
