@@ -113,7 +113,7 @@ class CHIEF_SFC_Capture {
 			$result = CHIEF_SFC_Remote::post( "sobjects/{$object}", $data );
 //			$record['fc_request_data'] = wp_json_encode($result['request']);
 			$sanitized_form_values = [];
-			$form_fields = FrmField::get_all_for_form( 8 );
+			$form_fields = FrmField::get_all_for_form( 34 );
 			foreach ( $form_fields as $field ) {
 				if ( stristr( $field->name,'email' )
 				     || stristr( $field->name, 'country')
