@@ -99,6 +99,20 @@
     word-break: break-all;
     white-space: pre;
 }
+#capture-log input.table-filter::placeholder {
+    color: #0071a1;
+}
+#capture-log .mo {
+    display: inline-block;
+    position: relative;
+}
+#capture-log .mo::after {
+    position: absolute;
+    top: 6px;
+    right: 28px;
+    color: #0071a1;
+    content: 'months';
+}
 #capture-log thead tr {
     border-bottom: 1px solid #ccd0d4;
 }
@@ -149,7 +163,7 @@
     border-color: #0071a1;
     background: #f3f5f6;
     vertical-align: top;
-    width: 85px;
+    width: 100px;
 }
 
 /* Paginate */

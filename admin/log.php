@@ -26,6 +26,7 @@ function fc_json_decode( $json, $arr = false ) {
 }
 
 function salesforce_form_capture_log() {
+    // $show_failures = (array_key_exists( 'show_failures', $_GET ) && $_GET['show_failures']) ? 1 : 0;
     $show_all = (array_key_exists( 'show_all', $_GET ) && $_GET['show_all']) ? 1 : 0;
 	$month = isset($_GET['month']) ? intval($_GET['month']) : '';
 ?>
@@ -33,19 +34,22 @@ function salesforce_form_capture_log() {
 <!-- begin markup for log page -->
     <div id="capture-log">
         <h1>Salesforce Form Captures Log</h1>
-
-        <p>Number of Months Back</p>
-        <form method="get" action='<?php echo admin_url("admin.php") ?>'>
+        
+        <form method="get" action='<?php echo admin_url("admin.php") ?>'>  
+        
             <input type="hidden" name="page" value="chief-sfc-log" />
-            <!-- <input type="search" name="keyword" class="table-filter" data-table="order-table" placeholder="Search word or date" value="<?=isset($_GET['keyword']) ? $_GET['keyword'] : ''?>" /> -->
+            </br>
+            </br>
+            <div class="mo"> 
+                <input type="number" min="1" placeholder="all" name="month" class="table-filter" id="num" data-table="order-table" value="<?=$month?>">
+            </div>
 
-            <input type="number" min="1" name="month" class="table-filter" data-table="order-table" value="<?=$month?>">
+            <button name="show_all" id="show_failures" class="button" value="0">Show Failures</button>
+            <button name="show_all" id="show_all" class="button" value="1">Show All</button>
 
             <a href="<?=admin_url('admin.php?page=chief-sfc-log&show_all=0' )?>" alt="Reset" class="button">Reset</a>
-            <button type="submit" name="show_all" id="show_failures" class="button" value="0">Show Failures</button>
-            <button type="submit" name="show_all" id="show_all" class="button" value="1">Show All</button>
 
-            <a id="export" target="_blank" class="button" href="<?=admin_url('admin-post.php?action=sfc_export&month=' . $month . '&show_all=' . $show_all) ?>">Export</a>
+            <a id="export" class="button" href="<?=admin_url('admin-post.php?action=sfc_export&month=' . $month . '&show_all=' . $show_all) ?>">Export</a>
 
 
         </form>
@@ -71,10 +75,6 @@ function salesforce_form_capture_log() {
             if (!$show_all) {
                 $query .= " AND fc_failure = 1 ";
             }
-            // if (isset($_GET['keyword'])) {
-            //     $kw = sanitize_text_field($_GET['keyword']);
-            //     $query .= " AND (fc_request_data LIKE '%$kw%' OR fc_response LIKE '%$kw%' OR fc_submission_date LIKE '%$kw%')";
-            // }
             if (isset($_GET['month']) && $_GET['month']) {
                 $month = sanitize_text_field($_GET['month']);
                 $query .= " AND(fc_submission_date >= DATE_SUB(NOW(), INTERVAL $month MONTH))";
