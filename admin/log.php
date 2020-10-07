@@ -11,7 +11,7 @@ add_action('admin_print_styles', 'add_stylesheet');
 // json decoder to print the cells
 function fc_json_decode( $json, $arr = false ) {
     $result = json_decode( $json, $arr );
-    if ( $result ) {
+    if (is_array($result)) {
         foreach ( $result as &$val ) {
             if ( is_string( $val ) ) {
                 $nested = fc_json_decode( $val, $arr );
@@ -26,7 +26,7 @@ function fc_json_decode( $json, $arr = false ) {
 }
 
 function salesforce_form_capture_log() {
-    // $show_failures = (array_key_exists( 'show_failures', $_GET ) && $_GET['show_failures']) ? 1 : 0;
+    $show_failures = (array_key_exists( 'show_failures', $_GET ) && $_GET['show_failures']) ? 1 : 0;
     $show_all = (array_key_exists( 'show_all', $_GET ) && $_GET['show_all']) ? 1 : 0;
 	$month = isset($_GET['month']) ? intval($_GET['month']) : '';
 ?>
@@ -71,7 +71,7 @@ function salesforce_form_capture_log() {
             }
             echo '</style>';
 
-            $query             = "SELECT * FROM wp_form_capture_data WHERE 1 ";
+            $query             = "SELECT * FROM ".$wpdb->get_blog_prefix()."form_capture_data WHERE 1 ";
             if (!$show_all) {
                 $query .= " AND fc_failure = 1 ";
             }
@@ -165,5 +165,7 @@ function salesforce_form_capture_log() {
         </div> <!-- #dataTable -->
 
     </div> <!-- end #capture-log -->
+
+    <?php echo $wpdb->get_blog_prefix(BLOG_ID_CURRENT_SITE)."form_capture_data"; ?>
 
 <?php } /* end salesforce_form_capture_log()  */?>

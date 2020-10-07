@@ -267,7 +267,7 @@ class CHIEF_SFC_Form {
 		];
 
 		if ( $result['wp_error'] || !is_object( $response ) ) {
-			$wpdb->insert( "{$wpdb->prefix}form_capture_data", $record );
+			$wpdb->insert( "{$wpdb->get_blog_prefix()}form_capture_data", $record );
 			return array();
 		}
 

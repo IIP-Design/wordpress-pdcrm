@@ -30,8 +30,8 @@ class CHIEF_SFC_Export {
 		}
 		$show_all = (array_key_exists( 'show_all', $_GET ) && $_GET['show_all']) ? 1 : 0;
 		$month = (array_key_exists('month', $_GET) && $_GET['month']) ? intval($_GET['month']) : null;
-		// $query = "SELECT * FROM {$wpdb->prefix}form_capture_data " . ($show_all ? '' : ' WHERE fc_failure = 1');
-		$query = "SELECT * FROM {$wpdb->prefix}form_capture_data WHERE 1 " . (!$show_all ? ' AND fc_failure = 1' : '' );
+		// $query = "SELECT * FROM {$wpdb->get_blog_prefix()}form_capture_data " . ($show_all ? '' : ' WHERE fc_failure = 1');
+		$query = "SELECT * FROM {$wpdb->get_blog_prefix()}form_capture_data WHERE 1 " . (!$show_all ? ' AND fc_failure = 1' : '' );
 		if ($month) $query .= " AND fc_submission_date >= DATE_SUB(NOW(), INTERVAL $month MONTH)";
 
 		$results = $wpdb->get_results( $query );
