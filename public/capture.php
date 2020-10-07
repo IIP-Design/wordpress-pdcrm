@@ -113,7 +113,7 @@ class CHIEF_SFC_Capture {
 			$result = CHIEF_SFC_Remote::post( "sobjects/{$object}", $data );
 //			$record['fc_request_data'] = wp_json_encode($result['request']);
 			$sanitized_form_values = [];
-			$form_fields = FrmField::get_all_for_form( 34 );
+			$form_fields = FrmField::get_all_for_form( $form->form_id );
 			foreach ( $form_fields as $field ) {
 				if ( stristr( $field->name,'email' )
 				     || stristr( $field->name, 'country')
@@ -151,7 +151,7 @@ class CHIEF_SFC_Capture {
 			remove_filter( 'wp_mail_content_type', 'wpdocs_set_html_mail_content_type' );
 		}
 		global $wpdb;
-		$result = $wpdb->insert( "{$wpdb->prefix}form_capture_data", $record );
+		$result = $wpdb->insert( "{$wpdb->get_blog_prefix()}form_capture_data", $record );
 	}
 
 }

@@ -51,7 +51,7 @@ function form_capture_activate() {
 
 	global $wpdb;
 
-    $table_name = $wpdb->prefix . 'form_capture_data';
+    $table_name = $wpdb->get_blog_prefix() . 'form_capture_data';
 
     $charset_collate = $wpdb->get_charset_collate();
 
@@ -79,9 +79,9 @@ function form_capture_activate() {
 
 function log_demo_data() {
 	global $wpdb;
-	$table_name = $wpdb->prefix . 'form_capture_data';
+	$table_name = $wpdb->get_blog_prefix() . 'form_capture_data';
 
-	$fc_form_id = '';
+	$fc_form_id = '2';
     $fc_submission_id = '';
     // below mocks the actual form output in an array
     $fc_request_data =  '{"method":"POST","body":"{\"LastName\":\"Bogard\",\"FirstName\":\"Tester\",\"Company\":\"(no information submitted)\",\"Country\":\"Zambia\",\"Email\":\"testit@teststuff.com\",\"LeadSource\":\"YALI\",\"Youth_Network_Add_Me__c\":\"Yes\"}","headers":{"content-type":"application\/json","Authorization":"Bearer 00D30000000mqyv!AQMAQCcomNX73OkdKJ.ty_bW6BuElkVpmjotVwhL4aXYE.WMCO.LVz2cnbAcoshF0stkWVhCfBrT1gUcNUBnEnY9Zxn3jF95"},"sslverify":true,"timeout":5}';
@@ -118,7 +118,7 @@ register_activation_hook( __FILE__, 'form_capture_activate' );
 // And here goes the uninstallation function:
 function form_capture_uninstall(){
 	global $wpdb;
-    $table_name = $wpdb->prefix . 'form_capture_data';
+    $table_name = $wpdb->get_blog_prefix() . 'form_capture_data';
     $sql = "DROP TABLE IF EXISTS $table_name";
     $wpdb->query($sql);
 }
