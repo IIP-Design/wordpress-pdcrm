@@ -166,6 +166,4 @@ function salesforce_form_capture_log() {
 
     </div> <!-- end #capture-log -->
 
-    <?php echo $wpdb->get_blog_prefix(BLOG_ID_CURRENT_SITE)."form_capture_data"; ?>
-
 <?php } /* end salesforce_form_capture_log()  */?>
